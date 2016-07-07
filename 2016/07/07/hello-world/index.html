@@ -25,7 +25,9 @@
 个人主页
 每个帐号只能有一个仓库来存放个人主页，而且仓库的名字必须是username/username.github.io，这是特殊的命名约定。你可以通过 http://username.github.io 来访问你的个人主页。
 通过 https://pages.github.com/ 向导很">
-<meta property="og:updated_time" content="2016-07-07T04:04:41.527Z">
+<meta property="og:image" content="https://luohoufu.github.io/img/blog/hexo.png">
+<meta property="og:image" content="http://luohoufu.github.io/img/blog/jacman.png">
+<meta property="og:updated_time" content="2016-07-07T04:14:03.057Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="在GitHub上创建博客">
 <meta name="twitter:description" content="使用Hexo及jacman主题搭建博客，将本地的Markdown博客推送到github站点。
@@ -33,6 +35,7 @@
 个人主页
 每个帐号只能有一个仓库来存放个人主页，而且仓库的名字必须是username/username.github.io，这是特殊的命名约定。你可以通过 http://username.github.io 来访问你的个人主页。
 通过 https://pages.github.com/ 向导很">
+<meta name="twitter:image" content="https://luohoufu.github.io/img/blog/hexo.png">
 
     
     <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
@@ -99,7 +102,7 @@
 		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
 		
   <p class="article-time">
-    <time datetime="2016-07-07T04:04:41.603Z" itemprop="datePublished"> 发表于 2016-07-07</time>
+    <time datetime="2016-07-07T04:14:03.121Z" itemprop="datePublished"> 发表于 2016-07-07</time>
     
   </p>
 </header>
@@ -108,7 +111,7 @@
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备工作"><span class="toc-number">1.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#步骤"><span class="toc-number">1.1.</span> <span class="toc-text">步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Config"><span class="toc-number">1.2.</span> <span class="toc-text">Config</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-number">1.3.</span> <span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-number">1.4.</span> <span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol>
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备工作"><span class="toc-number">1.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#步骤"><span class="toc-number">1.1.</span> <span class="toc-text">步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置hexo"><span class="toc-number">1.2.</span> <span class="toc-text">配置hexo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置jacman"><span class="toc-number">1.3.</span> <span class="toc-text">配置jacman</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#部署或更新站点"><span class="toc-number">1.4.</span> <span class="toc-text">部署或更新站点</span></a></li></ol></li></ol>
 		
 		</div>
 		
@@ -121,12 +124,11 @@
 </ul>
 <h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g hexo</span><br><span class="line">$ hexo new <span class="string">"MyBlog"</span></span><br></pre></td></tr></table></figure>
 <p> 更多关于写个人博客的信息: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">写作指南</a></p>
-<h3 id="Config"><a href="#Config" class="headerlink" title="Config"></a>Config</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi _config.yml</span><br></pre></td></tr></table></figure>
-<p> 配置好站点相关信息，参考：<br> ![hexo配置]<a href="https://luohoufu.github.io/img/blog/hexo.png">https://luohoufu.github.io/img/blog/hexo.png</a>)</p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p> More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p> More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
+<h3 id="配置hexo"><a href="#配置hexo" class="headerlink" title="配置hexo"></a>配置hexo</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi _config.yml</span><br></pre></td></tr></table></figure>
+<p> 配置好站点相关信息，参考：<br> <img src="https://luohoufu.github.io/img/blog/hexo.png" alt="hexo配置"></p>
+<h3 id="配置jacman"><a href="#配置jacman" class="headerlink" title="配置jacman"></a>配置jacman</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/wuchong/jacman.git themes/jacman</span><br><span class="line">$ vi theme/jacman/_config.yml</span><br></pre></td></tr></table></figure>
+<p> 配置好主题相关的信息，参考：<br> <img src="/img/blog/jacman.png" alt="jacman配置"></p>
+<h3 id="部署或更新站点"><a href="#部署或更新站点" class="headerlink" title="部署或更新站点"></a>部署或更新站点</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-deployer-git --save</span><br><span class="line">$ hexo g <span class="_">-d</span></span><br></pre></td></tr></table></figure>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -158,7 +160,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
  
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备工作"><span class="toc-number">1.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#步骤"><span class="toc-number">1.1.</span> <span class="toc-text">步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Config"><span class="toc-number">1.2.</span> <span class="toc-text">Config</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-number">1.3.</span> <span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-number">1.4.</span> <span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备工作"><span class="toc-number">1.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#步骤"><span class="toc-number">1.1.</span> <span class="toc-text">步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置hexo"><span class="toc-number">1.2.</span> <span class="toc-text">配置hexo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置jacman"><span class="toc-number">1.3.</span> <span class="toc-text">配置jacman</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#部署或更新站点"><span class="toc-number">1.4.</span> <span class="toc-text">部署或更新站点</span></a></li></ol></li></ol>
  
   </div>
 
