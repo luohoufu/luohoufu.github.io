@@ -4,43 +4,29 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>hexo | 技术资料分享小站</title>
+    <title>在centos 7下源码编译golang 1.7 | 技术资料分享小站</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Tonny Luo">
     
 
     
-    <meta name="description" content="Hexo    
-A fast, simple &amp;amp; powerful blog framework, powered by Node.js.
-Features
-Blazing fast generating
-Support for GitHub Flavored Markdown and most Octopress plugins
-One-command deploy to GitHub">
+    <meta name="description" content="##准备工作
+
+一个“干净”的系统是必须的，本次操作在阿里云上完成。123456789101112[root@snails ~]#hostnamectl set-hostname  snails[root@snails ~]# hostnamectlStatic hostname: snailsIcon name: computer-vmChassis: vmMachine ID: 7d26c16">
 <meta property="og:type" content="article">
-<meta property="og:title" content="hexo">
-<meta property="og:url" content="http://luohoufu.github.io/2016/07/07/hexo/index.html">
+<meta property="og:title" content="在centos 7下源码编译golang 1.7">
+<meta property="og:url" content="http://luohoufu.github.io/2016/07/07/golang/index.html">
 <meta property="og:site_name" content="技术资料分享小站">
-<meta property="og:description" content="Hexo    
-A fast, simple &amp;amp; powerful blog framework, powered by Node.js.
-Features
-Blazing fast generating
-Support for GitHub Flavored Markdown and most Octopress plugins
-One-command deploy to GitHub">
-<meta property="og:image" content="https://travis-ci.org/hexojs/hexo.svg?branch=master">
-<meta property="og:image" content="https://badge.fury.io/js/hexo.svg">
-<meta property="og:image" content="https://coveralls.io/repos/hexojs/hexo/badge.svg?branch=master">
-<meta property="og:image" content="https://ci.appveyor.com/api/projects/status/hpx3lduqjj2t6uqq/branch/master?svg=true">
-<meta property="og:updated_time" content="2016-07-07T06:19:34.309Z">
+<meta property="og:description" content="##准备工作
+
+一个“干净”的系统是必须的，本次操作在阿里云上完成。123456789101112[root@snails ~]#hostnamectl set-hostname  snails[root@snails ~]# hostnamectlStatic hostname: snailsIcon name: computer-vmChassis: vmMachine ID: 7d26c16">
+<meta property="og:updated_time" content="2016-07-07T10:58:12.230Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="hexo">
-<meta name="twitter:description" content="Hexo    
-A fast, simple &amp;amp; powerful blog framework, powered by Node.js.
-Features
-Blazing fast generating
-Support for GitHub Flavored Markdown and most Octopress plugins
-One-command deploy to GitHub">
-<meta name="twitter:image" content="https://travis-ci.org/hexojs/hexo.svg?branch=master">
+<meta name="twitter:title" content="在centos 7下源码编译golang 1.7">
+<meta name="twitter:description" content="##准备工作
+
+一个“干净”的系统是必须的，本次操作在阿里云上完成。123456789101112[root@snails ~]#hostnamectl set-hostname  snails[root@snails ~]# hostnamectlStatic hostname: snailsIcon name: computer-vmChassis: vmMachine ID: 7d26c16">
 
     
     <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
@@ -100,14 +86,14 @@ One-command deploy to GitHub">
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2016/07/07/hexo/" title="hexo" itemprop="url">hexo</a>
+      <a href="/2016/07/07/golang/" title="在centos 7下源码编译golang 1.7" itemprop="url">在centos 7下源码编译golang 1.7</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
 		
   <p class="article-time">
-    <time datetime="2016-07-07T05:55:23.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
+    <time datetime="2016-07-07T10:57:23.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
     
   </p>
 </header>
@@ -116,35 +102,33 @@ One-command deploy to GitHub">
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Hexo"><span class="toc-number">1.</span> <span class="toc-text">Hexo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Features"><span class="toc-number">1.1.</span> <span class="toc-text">Features</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Installation"><span class="toc-number">1.2.</span> <span class="toc-text">Installation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-number">1.3.</span> <span class="toc-text">Quick Start</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#More-Information"><span class="toc-number">1.4.</span> <span class="toc-text">More Information</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#License"><span class="toc-number">1.5.</span> <span class="toc-text">License</span></a></li></ol></li></ol>
+			
 		
 		</div>
 		
-		<h1 id="Hexo"><a href="#Hexo" class="headerlink" title="Hexo"></a>Hexo</h1><p><a href="https://travis-ci.org/hexojs/hexo" target="_blank" rel="external"><img src="https://travis-ci.org/hexojs/hexo.svg?branch=master" alt="Build Status"></a>  <a href="http://badge.fury.io/js/hexo" target="_blank" rel="external"><img src="https://badge.fury.io/js/hexo.svg" alt="NPM version"></a> <a href="https://coveralls.io/r/hexojs/hexo?branch=master" target="_blank" rel="external"><img src="https://coveralls.io/repos/hexojs/hexo/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://ci.appveyor.com/project/tommy351/hexo/branch/master" target="_blank" rel="external"><img src="https://ci.appveyor.com/api/projects/status/hpx3lduqjj2t6uqq/branch/master?svg=true" alt="Build status"></a></p>
-<p>A fast, simple &amp; powerful blog framework, powered by <a href="http://nodejs.org" target="_blank" rel="external">Node.js</a>.</p>
-<h2 id="Features"><a href="#Features" class="headerlink" title="Features"></a>Features</h2><ul>
-<li>Blazing fast generating</li>
-<li>Support for GitHub Flavored Markdown and most Octopress plugins</li>
-<li>One-command deploy to GitHub Pages, Heroku, etc.</li>
-<li>Powerful plugin system</li>
+		<p>##准备工作</p>
+<ul>
+<li>一个“干净”的系统是必须的，本次操作在阿里云上完成。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#hostnamectl set-hostname  snails</span></span><br><span class="line">[root@snails ~]<span class="comment"># hostnamectl</span></span><br><span class="line">Static hostname: snails</span><br><span class="line">Icon name: computer-vm</span><br><span class="line">Chassis: vm</span><br><span class="line">Machine ID: 7d26c16f116042a684ea498c9e2c240f</span><br><span class="line">Boot ID: e567275688e84ce3b72a11794dc8ac9b</span><br><span class="line">Virtualization: xen</span><br><span class="line">Operating System: CentOS Linux 7 (Core)</span><br><span class="line">CPE OS Name: cpe:/o:centos:centos:7</span><br><span class="line">Kernel: Linux 3.10.0-327.el7.x86_64</span><br><span class="line">Architecture: x86-64</span><br></pre></td></tr></table></figure>
+</li>
 </ul>
-<h2 id="Installation"><a href="#Installation" class="headerlink" title="Installation"></a>Installation</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-cli -g</span><br></pre></td></tr></table></figure>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><p><strong>Setup your blog</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ hexo init blog</span><br><span class="line">$ <span class="built_in">cd</span> blog</span><br></pre></td></tr></table></figure>
-<p><strong>Start the server</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p><strong>Create a new post</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"Hello Hexo"</span></span><br></pre></td></tr></table></figure>
-<p><strong>Generate static files</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<h2 id="More-Information"><a href="#More-Information" class="headerlink" title="More Information"></a>More Information</h2><ul>
-<li>Read the <a href="https://hexo.io/" target="_blank" rel="external">documentation</a></li>
-<li>Find solutions in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a></li>
-<li>Join discussion on <a href="https://groups.google.com/group/hexo" target="_blank" rel="external">Google Group</a></li>
-<li>See the <a href="https://hexo.io/plugins/" target="_blank" rel="external">plugin list</a> and the <a href="https://hexo.io/themes/" target="_blank" rel="external">theme list</a> on wiki</li>
-<li>Follow <a href="https://twitter.com/hexojs" target="_blank" rel="external">@hexojs</a> for latest news</li>
+<p>##实践过程</p>
+<p>###配置yum源<br><a href="http://mirrors.aliyun.com/help/centos" target="_blank" rel="external">CentOS 7配置</a><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure></p>
+<p>####安装git、gcc、vim<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">yum -y install git gcc vim</span><br><span class="line">[root@snails ~]<span class="comment"># git --version</span></span><br><span class="line">git version 1.8.3.1</span><br><span class="line">[root@snails src]<span class="comment"># gcc --version</span></span><br><span class="line">gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-4)</span><br><span class="line">Copyright © 2015 Free Software Foundation, Inc.</span><br><span class="line">本程序是自由软件；请参看源代码的版权声明。本软件没有任何担保；</span><br><span class="line">包括没有适销性和某一专用目的下的适用性担保。</span><br></pre></td></tr></table></figure></p>
+<p>####下载go 1.4分支<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#git clone -b release-branch.go1.4  https://github.com/golang/go.git go</span></span><br></pre></td></tr></table></figure></p>
+<p>###编译并配置环境变量</p>
+<ul>
+<li><p>编译</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#cd go/src</span></span><br><span class="line">[root@snails ~]<span class="comment">#./all.bash</span></span><br><span class="line">ALL TESTS PASSED</span><br><span class="line">Installed Go <span class="keyword">for</span> linux/amd64 <span class="keyword">in</span> /root/go</span><br><span class="line">Installed commands <span class="keyword">in</span> /root/go/bin</span><br><span class="line">*** You need to add /root/go/bin to your PATH.</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#cd ~ &amp;&amp; mkdir -p golang/&#123;src,pkg,bin&#125;</span></span><br><span class="line">[root@snails ~]<span class="comment">#vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> GOPATH=<span class="variable">$HOME</span>/golang</span><br><span class="line"><span class="built_in">export</span> GOROOT=<span class="variable">$HOME</span>/go</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$GOROOT</span>/bin</span><br><span class="line">[root@snails ~]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails ~]<span class="comment"># go version</span></span><br><span class="line">go version go1.4.3 linux/amd64</span><br></pre></td></tr></table></figure>
+</li>
 </ul>
-<h2 id="License"><a href="#License" class="headerlink" title="License"></a>License</h2><p>MIT</p>
+<p>###更新go版本再次编译</p>
+<ul>
+<li>更新go版本<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># mv go go-bootstrap</span></span><br><span class="line">[root@snails ~]<span class="comment"># git clone https://github.com/golang/go.git</span></span><br><span class="line">[root@snails ~]<span class="comment"># cd go</span></span><br><span class="line">``` </span><br><span class="line">* 再次编译</span><br><span class="line">``` bash</span><br><span class="line">[root@snails go]<span class="comment"># vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> GOROOT_BOOTSTRAP=<span class="variable">$HOME</span>/go-bootstrap</span><br><span class="line">[root@snails go]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails go]<span class="comment"># cd src/</span></span><br><span class="line">[root@snails src]<span class="comment"># ./clean.bash</span></span><br><span class="line">[root@snails src]<span class="comment"># ./all.bash</span></span><br><span class="line">``` </span><br><span class="line"><span class="comment">##实践验证</span></span><br><span class="line">``` bash</span><br><span class="line">[root@snails src]<span class="comment"># go version</span></span><br><span class="line">go version devel +d872201 Thu Jul 7 04:06:52 2016 +0000 linux/amd64</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -153,7 +137,7 @@ One-command deploy to GitHub">
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/github/">github</a>
+  <span></span> <a href="/tags/golang/">golang</a>
   </div>
 
 </div>
@@ -162,7 +146,7 @@ One-command deploy to GitHub">
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://luohoufu.github.io/2016/07/07/hexo/" data-title="hexo | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  <div data-url="http://luohoufu.github.io/2016/07/07/golang/" data-title="在centos 7下源码编译golang 1.7 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -175,20 +159,20 @@ One-command deploy to GitHub">
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2016/07/07/hello-world/" title="在GitHub上创建博客">
-  <strong>上一篇：</strong><br/>
-  <span>
-  在GitHub上创建博客</span>
+
+<div class="next">
+<a href="/2016/07/07/jacman/"  title="jacman">
+ <strong>下一篇：</strong><br/> 
+ <span>jacman
+</span>
 </a>
 </div>
-
 
 </nav>
 
 	
 <section id="comments" class="comment">
-	<div class="ds-thread" data-thread-key="2016/07/07/hexo/" data-title="hexo" data-url="http://luohoufu.github.io/2016/07/07/hexo/"></div>
+	<div class="ds-thread" data-thread-key="2016/07/07/golang/" data-title="在centos 7下源码编译golang 1.7" data-url="http://luohoufu.github.io/2016/07/07/golang/"></div>
 </section>
 
 
@@ -198,7 +182,7 @@ One-command deploy to GitHub">
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
  
- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Hexo"><span class="toc-number">1.</span> <span class="toc-text">Hexo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Features"><span class="toc-number">1.1.</span> <span class="toc-text">Features</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Installation"><span class="toc-number">1.2.</span> <span class="toc-text">Installation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-number">1.3.</span> <span class="toc-text">Quick Start</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#More-Information"><span class="toc-number">1.4.</span> <span class="toc-text">More Information</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#License"><span class="toc-number">1.5.</span> <span class="toc-text">License</span></a></li></ol></li></ol>
+ 
  
   </div>
 
