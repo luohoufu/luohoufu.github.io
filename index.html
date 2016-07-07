@@ -81,34 +81,39 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2016/07/07/hello-world/" title="在GitHub上创建博客" itemprop="url">在GitHub上创建博客</a>
+      <a href="/2016/07/07/hello-world/" title="" itemprop="url"></a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
 		
   <p class="article-time">
-    <time datetime="2016-07-07T04:16:14.411Z" itemprop="datePublished"> 发表于 2016-07-07</time>
+    <time datetime="2016-07-07T06:08:35.274Z" itemprop="datePublished"> 发表于 2016-07-07</time>
     
   </p>
 </header>
     <div class="article-content">
         
-        <p> 使用Hexo及jacman主题搭建博客，将本地的Markdown博客推送到github站点。</p>
+        <hr>
+<p>  title: 在GitHub上创建博客</p>
+<h2 id="tags-github"><a href="#tags-github" class="headerlink" title="  tags: github"></a>  tags: github</h2><p>  使用Hexo及jacman主题搭建博客，将本地的Markdown博客推送到github站点。</p>
 <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
+<li><p>注册Github帐号</p>
+<p>已经有Github帐号跳过此步，首先进入Github进行注册，用户名、邮箱和密码之后都需要用到，自己记好。</p>
+</li>
 <li><p>个人主页</p>
 <p>每个帐号只能有一个仓库来存放个人主页，而且仓库的名字必须是username/username.github.io，这是特殊的命名约定。你可以通过 <a href="http://username.github.io" target="_blank" rel="external">http://username.github.io</a> 来访问你的个人主页。</p>
 <p>通过 <a href="https://pages.github.com/" target="_blank" rel="external">https://pages.github.com/</a> 向导很容易创建一个仓库，并测试成功。不过，同样的，没有博客的结构。需要注意的个人主页的网站内容是在master分支下的。</p>
 </li>
 </ul>
-<h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g hexo</span><br><span class="line">$ hexo new <span class="string">"MyBlog"</span></span><br></pre></td></tr></table></figure>
-<p> 更多关于写个人博客的信息: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">写作指南</a></p>
-<h3 id="配置hexo"><a href="#配置hexo" class="headerlink" title="配置hexo"></a>配置hexo</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi _config.yml</span><br></pre></td></tr></table></figure>
-<p> 配置好站点相关信息，参考：<br> <img src="/img/blog/hexo.png" alt="hexo配置"></p>
-<h3 id="配置jacman"><a href="#配置jacman" class="headerlink" title="配置jacman"></a>配置jacman</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/wuchong/jacman.git themes/jacman</span><br><span class="line">$ vi theme/jacman/_config.yml</span><br></pre></td></tr></table></figure>
-<p> 配置好主题相关的信息，参考：<br> <img src="/img/blog/jacman.png" alt="jacman配置"></p>
-<h3 id="部署或更新站点"><a href="#部署或更新站点" class="headerlink" title="部署或更新站点"></a>部署或更新站点</h3> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-deployer-git --save</span><br><span class="line">$ hexo g <span class="_">-d</span></span><br></pre></td></tr></table></figure>
-
+<h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g hexo</span><br><span class="line">$ hexo init <span class="string">"myblog"</span></span><br></pre></td></tr></table></figure>
+<p>  更多关于写个人博客的信息: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">写作指南</a></p>
+<h3 id="配置hexo"><a href="#配置hexo" class="headerlink" title="配置hexo"></a>配置hexo</h3>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi _config.yml</span><br></pre></td></tr></table></figure>
+<p>  配置好站点相关信息，参考：</p>
+ <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"># Hexo Configuration</span><br><span class="line">## Docs: https://hexo.io/docs/configuration.html</span><br><span class="line">## Source: https://github.com/hexojs/hexo/</span><br><span class="line"></span><br><span class="line"># Site</span><br><span class="line">title: 技术资料分享小站</span><br><span class="line">subtitle: 点滴积累，细细回味。</span><br><span class="line">description: 编程技术总结与分享,记录在工作中的技术实践。</span><br><span class="line">author: Tonny Luo</span><br><span class="line">language: zh-CN</span><br><span class="line">timezone:</span><br><span class="line"></span><br><span class="line"># URL</span><br><span class="line">## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'</span><br><span class="line">url: http://luohoufu.github.io/</span><br><span class="line">root: /</span><br><span class="line">permalink: :year/:month/:day/:title/</span><br><span class="line">permalink_defaults:</span><br><span class="line"></span><br><span class="line"># Directory</span><br><span class="line">source_dir: source</span><br><span class="line">public_dir: public</span><br><span class="line">tag_dir: tags</span><br><span class="line">archive_dir: archives</span><br><span class="line">category_dir: categories</span><br><span class="line">code_dir: downloads/code</span><br><span class="line">i18n_dir: :lang</span><br><span class="line">skip_render: [README.md]</span><br><span class="line"></span><br><span class="line"># Writing</span><br><span class="line">new_post_name: :title.md # File name of new posts</span><br><span class="line">default_layout: post</span><br><span class="line">titlecase: false # Transform title into titlecase</span><br><span class="line">external_link: true # Open external links in new tab</span><br><span class="line">filename_case: 0</span><br><span class="line">render_drafts: false</span><br><span class="line">post_asset_folder: false</span><br><span class="line">relative_link: false</span><br><span class="line">future: true</span><br><span class="line">highlight:</span><br><span class="line">  enable: true</span><br><span class="line">  line_number: true</span><br><span class="line">  auto_detect: false</span><br><span class="line">  tab_replace:</span><br><span class="line"></span><br><span class="line"># Category &amp; Tag</span><br><span class="line">default_category: uncategorized</span><br><span class="line">category_map:</span><br><span class="line">tag_map:</span><br><span class="line"> # Date / Time format</span><br><span class="line">## Hexo uses Moment.js to parse and display date</span><br><span class="line">## You can customize the date format as defined in</span><br><span class="line">## http://momentjs.com/docs/#/displaying/format/</span><br><span class="line">date_format: YYYY-MM-DD</span><br><span class="line">time_format: HH:mm:ss</span><br><span class="line"></span><br><span class="line"># Pagination</span><br><span class="line">## Set per_page to 0 to disable pagination</span><br><span class="line">per_page: 10</span><br><span class="line">pagination_dir: page</span><br><span class="line"></span><br><span class="line"># Extensions</span><br><span class="line">## Plugins: https://hexo.io/plugins/</span><br><span class="line">## Themes: https://hexo.io/themes/</span><br><span class="line">theme: jacman</span><br><span class="line"></span><br><span class="line"># Deployment</span><br><span class="line">## Docs: https://hexo.io/docs/deployment.html</span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repository: https://github.com/luohoufu/luohoufu.github.io.git</span><br><span class="line">  branch: master</span><br><span class="line"></span><br><span class="line"># Css Compress</span><br><span class="line">stylus:</span><br><span class="line">  compress: true</span><br></pre></td></tr></table></figure>
+<h3 id="配置jacman"><a href="#配置jacman" class="headerlink" title="配置jacman"></a>配置jacman</h3>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/wuchong/jacman.git themes/jacman</span><br><span class="line">$ vi theme/jacman/_config.yml</span><br></pre></td></tr></table></figure>
+<p>  配置好主题相关的信息，参考：<br>  <img src="/img/blog/jacman.png" alt="jacman配置"></p>
+<h3 id="部署或更新站点"><a href="#部署或更新站点" class="headerlink" title="部署或更新站点"></a>部署或更新站点</h3>
         
         
         <p class="article-more-link">
@@ -118,6 +123,60 @@
     <footer class="article-footer clearfix">
 <div class="article-catetags">
 
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/07/hexo/" title="hexo" itemprop="url">hexo</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-07T05:55:23.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/github/">github</a>
+  </div>
 
 </div>
 
@@ -159,6 +218,17 @@
   
 
   
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/github/" title="github">github<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
 
   <div class="linkslist">
   <p class="asidetitle">友情链接</p>
