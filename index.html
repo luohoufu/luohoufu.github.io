@@ -81,6 +81,73 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/07/08/openresty/" title="" itemprop="url"></a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-08T06:05:44.743Z" itemprop="datePublished"> 发表于 2016-07-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <hr>
+<p>title: 在CentOS7上源码安装OpenResty<br>date: 2016-07-08 14:05:04</p>
+<h2 id="tags-openresty"><a href="#tags-openresty" class="headerlink" title="tags: openresty"></a>tags: openresty</h2><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>您必须将这些库<br>perl 5.6.1+<br>libreadline<br>libpcre<br>libssl<br>安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。</p>
+<ul>
+<li>CentOS 7 安装OpenResty所需依赖<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># yum -y install readline-devel pcre-devel openssl-devel gcc</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="构建-OpenResty"><a href="#构建-OpenResty" class="headerlink" title="构建 OpenResty"></a>构建 OpenResty</h2><h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><p>从下载页 <a href="http://openresty.org/cn/download.html" target="_blank" rel="external">Download</a>下载最新的ngx_openresty源码包，并且像下面的示例一样将其解压:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://openresty.org/download/openresty-VERSION.tar.gz</span></span><br><span class="line">[root@snails ~]<span class="comment"># tar xzvf ngx_openresty-VERSION.tar.gz</span></span><br></pre></td></tr></table></figure></p>
+<p>VERSION  的地方替换成您下载的源码包的版本号，比如说 1.9.15.1。</p>
+<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><p>然后在进入 ngx_openresty-VERSION/<br> 目录, 然后输入以下命令配置:<br>./configure –prefix=/root/openresty</p>
+<p>默认, –prefix=/usr/local/openresty<br> 程序会被安装到/usr/local/openresty目录。<br>您可以指定各种选项，比如<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@snails openresty-1.9.15.1]<span class="comment"># ./configure --prefix=/opt/openresty \</span></span><br><span class="line">                                              --with-luajit \</span><br><span class="line">                                              --with-http_stub_status_module</span><br><span class="line">gmake</span><br><span class="line">gmake install</span><br></pre></td></tr></table></figure></p>
+<p>试着使用 ./configure –help 查看更多的选项。</p>
+<h3 id="设置环境变量及文件软链接gmake"><a href="#设置环境变量及文件软链接gmake" class="headerlink" title="设置环境变量及文件软链接gmake"></a>设置环境变量及文件软链接gmake</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># ln -s /usr/local/openresty/nginx /usr/local/nginx</span></span><br><span class="line">vi /etc/profile</span><br><span class="line"><span class="built_in">export</span> ORPATH=/usr/<span class="built_in">local</span>/openresty</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$ORPATH</span>/bin:<span class="variable">$ORPATH</span>/nginx/sbin</span><br></pre></td></tr></table></figure>
+<h3 id="配置用户及组"><a href="#配置用户及组" class="headerlink" title="配置用户及组"></a>配置用户及组</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails nginx]<span class="comment"># groupadd -f www  </span></span><br><span class="line">[root@snails nginx]<span class="comment"># useradd -s /sbin/nologin -g www www</span></span><br><span class="line">[root@snails nginx]<span class="comment"># vi conf/nginx.conf</span></span><br><span class="line">user www www;</span><br></pre></td></tr></table></figure>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails nginx]<span class="comment"># nginx</span></span><br><span class="line">[root@snails nginx]<span class="comment"># curl -I localhost</span></span><br><span class="line">HTTP/1.1 200 OK</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/08/openresty/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/08/openresty/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/07/08/mongo/" title="在CentOS7上源码安装MongoDB 3.2.7" itemprop="url">在CentOS7上源码安装MongoDB 3.2.7</a>
   </h1>
   <p class="article-author">By
