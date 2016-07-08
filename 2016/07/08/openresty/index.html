@@ -4,32 +4,29 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>技术资料分享小站</title>
+    <title>在CentOS7上源码安装OpenResty | 技术资料分享小站</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Tonny Luo">
     
 
     
-    <meta name="description" content="title: 在CentOS7上源码安装OpenRestydate: 2016-07-08 14:05:04
-tags: openresty环境准备您必须将这些库perl 5.6.1+libreadlinelibpcrelibssl安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。
+    <meta name="description" content="环境准备您必须将这些库perl 5.6.1+libreadlinelibpcrelibssl安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。
 
-CentOS 7 安装OpenResty">
+CentOS 7 安装OpenResty所需依赖1[root@snails ~]# yum -y install readline-devel pcre-devel openssl-">
 <meta property="og:type" content="article">
-<meta property="og:title" content="技术资料分享小站">
+<meta property="og:title" content="在CentOS7上源码安装OpenResty">
 <meta property="og:url" content="http://luohoufu.github.io/2016/07/08/openresty/index.html">
 <meta property="og:site_name" content="技术资料分享小站">
-<meta property="og:description" content="title: 在CentOS7上源码安装OpenRestydate: 2016-07-08 14:05:04
-tags: openresty环境准备您必须将这些库perl 5.6.1+libreadlinelibpcrelibssl安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。
+<meta property="og:description" content="环境准备您必须将这些库perl 5.6.1+libreadlinelibpcrelibssl安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。
 
-CentOS 7 安装OpenResty">
-<meta property="og:updated_time" content="2016-07-08T06:05:44.687Z">
+CentOS 7 安装OpenResty所需依赖1[root@snails ~]# yum -y install readline-devel pcre-devel openssl-">
+<meta property="og:updated_time" content="2016-07-08T06:09:00.033Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="技术资料分享小站">
-<meta name="twitter:description" content="title: 在CentOS7上源码安装OpenRestydate: 2016-07-08 14:05:04
-tags: openresty环境准备您必须将这些库perl 5.6.1+libreadlinelibpcrelibssl安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。
+<meta name="twitter:title" content="在CentOS7上源码安装OpenResty">
+<meta name="twitter:description" content="环境准备您必须将这些库perl 5.6.1+libreadlinelibpcrelibssl安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。
 
-CentOS 7 安装OpenResty">
+CentOS 7 安装OpenResty所需依赖1[root@snails ~]# yum -y install readline-devel pcre-devel openssl-">
 
     
     <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
@@ -89,14 +86,14 @@ CentOS 7 安装OpenResty">
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2016/07/08/openresty/" title="" itemprop="url"></a>
+      <a href="/2016/07/08/openresty/" title="在CentOS7上源码安装OpenResty" itemprop="url">在CentOS7上源码安装OpenResty</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
 		
   <p class="article-time">
-    <time datetime="2016-07-08T06:05:44.743Z" itemprop="datePublished"> 发表于 2016-07-08</time>
+    <time datetime="2016-07-08T06:05:04.000Z" itemprop="datePublished"> 发表于 2016-07-08</time>
     
   </p>
 </header>
@@ -105,13 +102,11 @@ CentOS 7 安装OpenResty">
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#tags-openresty"><span class="toc-number">1.</span> <span class="toc-text">tags: openresty</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#环境准备"><span class="toc-number">2.</span> <span class="toc-text">环境准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建-OpenResty"><span class="toc-number">3.</span> <span class="toc-text">构建 OpenResty</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#下载"><span class="toc-number">3.1.</span> <span class="toc-text">下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">3.2.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置环境变量及文件软链接gmake"><span class="toc-number">3.3.</span> <span class="toc-text">设置环境变量及文件软链接gmake</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置用户及组"><span class="toc-number">3.4.</span> <span class="toc-text">配置用户及组</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#验证"><span class="toc-number">4.</span> <span class="toc-text">验证</span></a></li></ol>
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#环境准备"><span class="toc-number">1.</span> <span class="toc-text">环境准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建-OpenResty"><span class="toc-number">2.</span> <span class="toc-text">构建 OpenResty</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#下载"><span class="toc-number">2.1.</span> <span class="toc-text">下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">2.2.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置环境变量及文件软链接gmake"><span class="toc-number">2.3.</span> <span class="toc-text">设置环境变量及文件软链接gmake</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置用户及组"><span class="toc-number">2.4.</span> <span class="toc-text">配置用户及组</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#验证"><span class="toc-number">3.</span> <span class="toc-text">验证</span></a></li></ol>
 		
 		</div>
 		
-		<hr>
-<p>title: 在CentOS7上源码安装OpenResty<br>date: 2016-07-08 14:05:04</p>
-<h2 id="tags-openresty"><a href="#tags-openresty" class="headerlink" title="tags: openresty"></a>tags: openresty</h2><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>您必须将这些库<br>perl 5.6.1+<br>libreadline<br>libpcre<br>libssl<br>安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。</p>
+		<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>您必须将这些库<br>perl 5.6.1+<br>libreadline<br>libpcre<br>libssl<br>安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。</p>
 <ul>
 <li>CentOS 7 安装OpenResty所需依赖<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># yum -y install readline-devel pcre-devel openssl-devel gcc</span></span><br></pre></td></tr></table></figure>
 </li>
@@ -130,13 +125,18 @@ CentOS 7 安装OpenResty">
 <div class="article-catetags">
 
 
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/openresty/">openresty</a>
+  </div>
+
 </div>
 
 
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://luohoufu.github.io/2016/07/08/openresty/" data-title="技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  <div data-url="http://luohoufu.github.io/2016/07/08/openresty/" data-title="在CentOS7上源码安装OpenResty | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -162,7 +162,7 @@ CentOS 7 安装OpenResty">
 
 	
 <section id="comments" class="comment">
-	<div class="ds-thread" data-thread-key="2016/07/08/openresty/" data-title="" data-url="http://luohoufu.github.io/2016/07/08/openresty/"></div>
+	<div class="ds-thread" data-thread-key="2016/07/08/openresty/" data-title="在CentOS7上源码安装OpenResty" data-url="http://luohoufu.github.io/2016/07/08/openresty/"></div>
 </section>
 
 
@@ -172,7 +172,7 @@ CentOS 7 安装OpenResty">
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
  
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#tags-openresty"><span class="toc-number">1.</span> <span class="toc-text">tags: openresty</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#环境准备"><span class="toc-number">2.</span> <span class="toc-text">环境准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建-OpenResty"><span class="toc-number">3.</span> <span class="toc-text">构建 OpenResty</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#下载"><span class="toc-number">3.1.</span> <span class="toc-text">下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">3.2.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置环境变量及文件软链接gmake"><span class="toc-number">3.3.</span> <span class="toc-text">设置环境变量及文件软链接gmake</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置用户及组"><span class="toc-number">3.4.</span> <span class="toc-text">配置用户及组</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#验证"><span class="toc-number">4.</span> <span class="toc-text">验证</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#环境准备"><span class="toc-number">1.</span> <span class="toc-text">环境准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建-OpenResty"><span class="toc-number">2.</span> <span class="toc-text">构建 OpenResty</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#下载"><span class="toc-number">2.1.</span> <span class="toc-text">下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">2.2.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置环境变量及文件软链接gmake"><span class="toc-number">2.3.</span> <span class="toc-text">设置环境变量及文件软链接gmake</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置用户及组"><span class="toc-number">2.4.</span> <span class="toc-text">配置用户及组</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#验证"><span class="toc-number">3.</span> <span class="toc-text">验证</span></a></li></ol>
  
   </div>
 
@@ -211,6 +211,10 @@ CentOS 7 安装OpenResty">
 		
 			
 				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
 			
 		
 		</ul>
