@@ -81,6 +81,114 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/07/14/supervisor/" title="在CentOS7上用supervisor运行golang守护进程" itemprop="url">在CentOS7上用supervisor运行golang守护进程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-14T03:53:22.000Z" itemprop="datePublished"> 发表于 2016-07-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="安装pip"><a href="#安装pip" class="headerlink" title="安装pip"></a>安装pip</h2><p>###下载pip安装文件并执行安装</p>
+<ul>
+<li><p>下载文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://bootstrap.pypa.io/get-pip.py --no-check-certificate</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># python get-pip.py</span></span><br><span class="line">[root@snails ~]<span class="comment"># pip -V</span></span><br><span class="line">pip 8.1.2 from /usr/lib/python2.7/site-packages (python 2.7)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="设置pip国内aliyun源"><a href="#设置pip国内aliyun源" class="headerlink" title="设置pip国内aliyun源"></a>设置pip国内aliyun源</h3><ul>
+<li><p>创建或修改配置文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">linux ~/.pip/pip.conf</span><br><span class="line">windows %HOMEPATH%\pip\pip.ini</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改内容</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[global]  </span><br><span class="line">index-url = http:<span class="comment">//mirrors.aliyun.com/pypi/simple/  </span></span><br><span class="line"></span><br><span class="line">  [install]</span><br><span class="line">trusted-host=mirrors.aliyun.com</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>更新pip到最新版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip install -U pip</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看已安装的库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip list</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="安装supervisor"><a href="#安装supervisor" class="headerlink" title="安装supervisor"></a>安装supervisor</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip install supervisor</span></span><br></pre></td></tr></table></figure>
+<p>  安装成功便可以拥有Supervisor，如果没有启动脚本，可以从 <a href="https://github.com/cedricporter/supervisor_conf/blob/master/init.d/supervisor" target="_blank" rel="external">这里</a> 下载一份，放置到  /usr/lib/systemd/system 或 /etc/systemd/system 目录（后者优先级更高）下面便可。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://raw.githubusercontent.com/Supervisor/initscripts/master/centos-systemd-etcs -O /usr/lib/systemd/system/systemd-supervisor.service</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>通过Supervisor附送的贴心的小脚本生成默认的配置文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># echo_supervisord_conf &gt; /etc/supervisord.conf</span></span><br></pre></td></tr></table></figure></p>
+<p>　我们可以根据需要修改里面的配置。我这里，每个不同的项目，使用了一个单独的配置的文件，放置在 /etc/supervisor/下面，于是修改 /etc/supervisord.conf ，加上如下内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[include]</span><br><span class="line">files = /etc/supervisor/*.conf</span><br></pre></td></tr></table></figure></p>
+<h2 id="创建golang-http服务"><a href="#创建golang-http服务" class="headerlink" title="创建golang http服务"></a>创建golang http服务</h2><p>为了测试方便，我这里用一个最简单的golang http服务。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># vi ~/simple_http_server.go</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"> <span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"log"</span></span><br><span class="line">	<span class="string">"net/http"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	http.HandleFunc(<span class="string">"/"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">		fmt.Fprintf(w, <span class="string">"Hello world\n"</span>)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	err := http.ListenAndServe(<span class="string">":9090"</span>, <span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(<span class="string">"ListenAndServe: "</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>直接运行这个程序会占用住终端，下面看看如何用supervisor来跑这个程序。</p>
+<h3 id="创建golang服务对应的supervisor配置文件"><a href="#创建golang服务对应的supervisor配置文件" class="headerlink" title="创建golang服务对应的supervisor配置文件"></a>创建golang服务对应的supervisor配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/supervisor/golang.conf</span><br><span class="line">[program:golang-http-server]</span><br><span class="line"><span class="built_in">command</span>=/root/simple_http_server</span><br><span class="line">autostart=<span class="literal">true</span></span><br><span class="line">autorestart=<span class="literal">true</span></span><br><span class="line">startsecs=10</span><br><span class="line">stdout_logfile=/var/<span class="built_in">log</span>/simple_http_server.log</span><br><span class="line">stdout_logfile_maxbytes=1MB</span><br><span class="line">stdout_logfile_backups=10</span><br><span class="line">stdout_capture_maxbytes=1MB</span><br><span class="line">stderr_logfile=/var/<span class="built_in">log</span>/simple_http_server.log</span><br><span class="line">stderr_logfile_maxbytes=1MB</span><br><span class="line">stderr_logfile_backups=10</span><br><span class="line">stderr_capture_maxbytes=1MB</span><br></pre></td></tr></table></figure>
+<ul>
+<li>几个配置说明：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">command</span>：表示运行的命令，填入完整的路径即可。autostart：表示是否跟随supervisor一起启动。autorestart：如果该程序挂了，是否重新启动。stdout_logfile：终端标准输出重定向文件。stderr_logfile：终端错误输出重定向文件。</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="启动supervisor"><a href="#启动supervisor" class="headerlink" title="启动supervisor"></a>启动supervisor</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># /usr/bin/supervisord -c /etc/supervisord.conf</span></span><br></pre></td></tr></table></figure>
+<p>如果出现什么问题，可以查看日志进行分析，日志文件路径/tmp/supervisord.log</p>
+<blockquote>
+<p>tips：如果修改了配置文件，可以用kill -HUP重新加载配置文件</p>
+</blockquote>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># cat /tmp/supervisord.pid | xargs sudo kill -HUP</span></span><br></pre></td></tr></table></figure>
+<h3 id="查看supervisor运行状态"><a href="#查看supervisor运行状态" class="headerlink" title="查看supervisor运行状态"></a>查看supervisor运行状态</h3>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># supervisorctl</span></span><br><span class="line">golang-http-server               RUNNING   pid 30343, uptime 0:00:55</span><br></pre></td></tr></table></figure>
+<ul>
+<li>输入help可以查看帮助<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">supervisor&gt; <span class="built_in">help</span></span><br><span class="line">default commands (<span class="built_in">type</span> <span class="built_in">help</span> &lt;topic&gt;):</span><br><span class="line">=====================================</span><br><span class="line">add    <span class="built_in">exit</span>      open  reload  restart   start   tail   </span><br><span class="line">avail  <span class="built_in">fg</span>        pid   remove  shutdown  status  update </span><br><span class="line">clear  maintail  quit  reread  signal    stop    version</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="supervisor运行原理"><a href="#supervisor运行原理" class="headerlink" title="supervisor运行原理"></a>supervisor运行原理</h2><p>supervisor运行后本身是守护进程，通过自身来管理相应的子进程，通过观察相应的进程状态就很明了。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># ps -ef | grep supervisord</span></span><br><span class="line">root     30269     1  0 11:31 ?        00:00:00 /usr/bin/python /usr/bin/supervisord -c /etc/supervisord.conf</span><br><span class="line">[root@snails ~]<span class="comment"># ps -ef | grep simple_http_server</span></span><br><span class="line">root     30343 30269  0 11:45 ?        00:00:00 /root/simple_http_server</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>可以很直观的看出golang simple_http_server进程是supervisord的子进程。</p>
+</blockquote>
+<h2 id="supervisor是否靠谱"><a href="#supervisor是否靠谱" class="headerlink" title="supervisor是否靠谱"></a>supervisor是否靠谱</h2><p>supervisor的诞生已经10年了，现在是3+版本，所以放心使用吧。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/golang/">golang</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/14/supervisor/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/14/supervisor/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/07/08/openresty/" title="在CentOS7上源码安装OpenResty" itemprop="url">在CentOS7上源码安装OpenResty</a>
   </h1>
   <p class="article-author">By
@@ -672,7 +780,7 @@
 			
 		
 			
-				<li><a href="/tags/golang/" title="golang">golang<sup>1</sup></a></li>
+				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
 			
 		
 			
@@ -680,11 +788,11 @@
 			
 		
 			
-				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
+				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
 			
 		
 		</ul>
