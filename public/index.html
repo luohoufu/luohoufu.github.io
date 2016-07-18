@@ -81,6 +81,204 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/07/18/mysql/" title="在CentOS上编译安装MySQL 5.7.13步骤详解" itemprop="url">在CentOS上编译安装MySQL 5.7.13步骤详解</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-18T03:38:37.000Z" itemprop="datePublished"> 发表于 2016-07-18</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="MySQL-5-7主要特性"><a href="#MySQL-5-7主要特性" class="headerlink" title="MySQL 5.7主要特性"></a>MySQL 5.7主要特性</h2><ol>
+<li>更好的性能<br> 对于多核CPU、固态硬盘、锁有着更好的优化，每秒100W QPS已不再是MySQL的追求，下个版本能否上200W QPS才是用户更关心的。</li>
+</ol>
+<ul>
+<li>更好的InnoDB存储引擎</li>
+<li>更为健壮的复制功能<br>  复制带来了数据完全不丢失的方案，传统金融客户也可以选择使用。MySQL数据库。此外，GTID在线平滑升级也变得可能。</li>
+<li>更好的优化器<br>  优化器代码重构的意义将在这个版本及以后的版本中带来巨大的改进，Oracle官方正在解决MySQL之前最大的难题。</li>
+<li>原生JSON类型的支持</li>
+<li>更好的地理信息服务支持<br>  InnoDB原生支持地理位置类型，支持GeoJSON，GeoHash特性</li>
+<li>新增sys库<br>  以后这会是DBA访问最频繁的库MySQL 5.7</li>
+</ul>
+<h2 id="安装准备"><a href="#安装准备" class="headerlink" title="安装准备"></a>安装准备</h2><h3 id="安装依赖包"><a href="#安装依赖包" class="headerlink" title="安装依赖包"></a>安装依赖包</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># yum -y install gcc gcc-c++ ncurses ncurses-devel cmake bison</span></span><br></pre></td></tr></table></figure>
+<h3 id="下载相应源码包"><a href="#下载相应源码包" class="headerlink" title="下载相应源码包"></a>下载相应源码包</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz</span></span><br><span class="line">[root@snails ~]<span class="comment"># wget http://cdn.mysql.com/Downloads/MySQL-5.7/mysql-5.7.13.tar.gz</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>也可以使用官方<a href="http://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.9.tar.gz" target="_blank" rel="external">下载链接</a> 进行下载。</p>
+</blockquote>
+<h3 id="新建MySQL用户和用户组"><a href="#新建MySQL用户和用户组" class="headerlink" title="新建MySQL用户和用户组"></a>新建MySQL用户和用户组</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># groupadd -r mysql &amp;&amp; useradd -r -g mysql -s /sbin/nologin -M mysql</span></span><br></pre></td></tr></table></figure>
+<h3 id="预编译"><a href="#预编译" class="headerlink" title="预编译"></a>预编译</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># tar -zxvf boost_1_59_0.tar.gz</span></span><br><span class="line">[root@snails data]<span class="comment"># md5sum mysql-5.7.13.tar.gz </span></span><br><span class="line">8fab75dbcafcd1374d07796bff88ae00  mysql-5.7.13.tar.gz</span><br><span class="line">[root@snails ~]<span class="comment"># tar -zxvf mysql-5.7.13.tar.gz</span></span><br><span class="line">[root@snails data]<span class="comment"># mkdir -p /data/mysql</span></span><br><span class="line">[root@snails data]<span class="comment"># cd mysql-5.7.13</span></span><br><span class="line">[root@snails data]<span class="comment"># cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \</span></span><br><span class="line">-DMYSQL_DATADIR=/data/mysql \</span><br><span class="line">-DWITH_BOOST=../boost_1_59_0 \</span><br><span class="line">-DSYSCONFDIR=/etc \</span><br><span class="line">-DWITH_INNOBASE_STORAGE_ENGINE=1 \</span><br><span class="line">-DWITH_PARTITION_STORAGE_ENGINE=1 \</span><br><span class="line">-DWITH_FEDERATED_STORAGE_ENGINE=1 \</span><br><span class="line">-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \</span><br><span class="line">-DWITH_MYISAM_STORAGE_ENGINE=1 \</span><br><span class="line">-DENABLED_LOCAL_INFILE=1 \</span><br><span class="line">-DENABLE_DTRACE=0 \</span><br><span class="line">-DDEFAULT_CHARSET=utf8mb4 \</span><br><span class="line">-DDEFAULT_COLLATION=utf8mb4_general_ci \</span><br><span class="line">-DWITH_EMBEDDED_SERVER=1</span><br></pre></td></tr></table></figure>
+<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># make -j `grep processor /proc/cpuinfo | wc -l`</span></span><br><span class="line"><span class="comment">#编译很消耗系统资源，小内存可能编译通不过make install</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># make install</span></span><br></pre></td></tr></table></figure>
+<h3 id="设置启动脚本，开机自启动"><a href="#设置启动脚本，开机自启动" class="headerlink" title="设置启动脚本，开机自启动"></a>设置启动脚本，开机自启动</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># ls -lrt /usr/local/mysql</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysqld</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># chmod +x /etc/init.d/mysqld</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># systemctl enable mysqld</span></span><br><span class="line">mysqld.service is not a native service, redirecting to /sbin/chkconfig.</span><br><span class="line">Executing /sbin/chkconfig mysqld on</span><br></pre></td></tr></table></figure>
+<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">/etc/my.cnf，仅供参考 </span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># cat &gt; /etc/my.cnf &lt;&lt; EOF</span></span><br><span class="line">[client]</span><br><span class="line">port = 3306</span><br><span class="line">socket = /dev/shm/mysql.sock</span><br><span class="line">[mysqld]</span><br><span class="line">port = 3306</span><br><span class="line">socket = /dev/shm/mysql.sock</span><br><span class="line">basedir = /usr/<span class="built_in">local</span>/mysql</span><br><span class="line">datadir = /data/mysql</span><br><span class="line">pid-file = /data/mysql/mysql.pid</span><br><span class="line">user = mysql</span><br><span class="line"><span class="built_in">bind</span>-address = 0.0.0.0</span><br><span class="line">server-id = 1</span><br><span class="line">init-connect = <span class="string">'SET NAMES utf8mb4'</span></span><br><span class="line">character-set-server = utf8mb4</span><br><span class="line"><span class="comment">#skip-name-resolve</span></span><br><span class="line"><span class="comment">#skip-networking</span></span><br><span class="line">back_<span class="built_in">log</span> = 300</span><br><span class="line">max_connections = 1000</span><br><span class="line">max_connect_errors = 6000</span><br><span class="line">open_files_<span class="built_in">limit</span> = 65535</span><br><span class="line">table_open_cache = 128</span><br><span class="line">max_allowed_packet = 4M</span><br><span class="line">binlog_cache_size = 1M</span><br><span class="line">max_heap_table_size = 8M</span><br><span class="line">tmp_table_size = 16M</span><br><span class="line"><span class="built_in">read</span>_buffer_size = 2M</span><br><span class="line"><span class="built_in">read</span>_rnd_buffer_size = 8M</span><br><span class="line">sort_buffer_size = 8M</span><br><span class="line">join_buffer_size = 8M</span><br><span class="line">key_buffer_size = 4M</span><br><span class="line">thread_cache_size = 8</span><br><span class="line">query_cache_<span class="built_in">type</span> = 1</span><br><span class="line">query_cache_size = 8M</span><br><span class="line">query_cache_<span class="built_in">limit</span> = 2M</span><br><span class="line">ft_min_word_len = 4</span><br><span class="line"><span class="built_in">log</span>_bin = mysql-bin</span><br><span class="line">binlog_format = mixed</span><br><span class="line">expire_logs_days = 30</span><br><span class="line"><span class="built_in">log</span>_error = /data/mysql/mysql-error.log</span><br><span class="line">slow_query_<span class="built_in">log</span> = 1</span><br><span class="line">long_query_time = 1</span><br><span class="line">slow_query_<span class="built_in">log</span>_file = /data/mysql/mysql-slow.log</span><br><span class="line">performance_schema = 0</span><br><span class="line">explicit_defaults_<span class="keyword">for</span>_timestamp</span><br><span class="line"><span class="comment">#lower_case_table_names = 1</span></span><br><span class="line">skip-external-locking</span><br><span class="line">default_storage_engine = InnoDB</span><br><span class="line"><span class="comment">#default-storage-engine = MyISAM</span></span><br><span class="line">innodb_file_per_table = 1</span><br><span class="line">innodb_open_files = 500</span><br><span class="line">innodb_buffer_pool_size = 64M</span><br><span class="line">innodb_write_io_threads = 4</span><br><span class="line">innodb_<span class="built_in">read</span>_io_threads = 4</span><br><span class="line">innodb_thread_concurrency = 0</span><br><span class="line">innodb_purge_threads = 1</span><br><span class="line">innodb_flush_<span class="built_in">log</span>_at_trx_commit = 2</span><br><span class="line">innodb_<span class="built_in">log</span>_buffer_size = 2M</span><br><span class="line">innodb_<span class="built_in">log</span>_file_size = 32M</span><br><span class="line">innodb_<span class="built_in">log</span>_files_<span class="keyword">in</span>_group = 3</span><br><span class="line">innodb_max_dirty_pages_pct = 90</span><br><span class="line">innodb_lock_<span class="built_in">wait</span>_timeout = 120</span><br><span class="line">bulk_insert_buffer_size = 8M</span><br><span class="line">myisam_sort_buffer_size = 8M</span><br><span class="line">myisam_max_sort_file_size = 10G</span><br><span class="line">myisam_repair_threads = 1</span><br><span class="line">interactive_timeout = 28800</span><br><span class="line"><span class="built_in">wait</span>_timeout = 28800</span><br><span class="line">[mysqldump]</span><br><span class="line">quick</span><br><span class="line">max_allowed_packet = 16M</span><br><span class="line">[myisamchk]</span><br><span class="line">key_buffer_size = 8M</span><br><span class="line">sort_buffer_size = 8M</span><br><span class="line"><span class="built_in">read</span>_buffer = 4M</span><br><span class="line">write_buffer = 4M</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h3 id="添加mysql的环境变量"><a href="#添加mysql的环境变量" class="headerlink" title="添加mysql的环境变量"></a>添加mysql的环境变量</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># echo -e '\n\nexport PATH=/usr/local/mysql/bin:$PATH\n' &gt;&gt; /etc/profile &amp;&amp; source /etc/profile</span></span><br></pre></td></tr></table></figure>
+<h3 id="初始化数据库"><a href="#初始化数据库" class="headerlink" title="初始化数据库"></a>初始化数据库</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># mysqld --initialize-insecure --user=mysql --basedir=/usr/local/mysql --datadir=/data/mysql</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：</p>
+<ul>
+<li>MySQL之前版本mysql_install_db是在mysql_basedir/script下</li>
+<li>MySQL 5.7直接放在了mysql_install_db/bin目录下。</li>
+<li>“–initialize”已废弃,生成一个随机密码(~/.mysql_secret)</li>
+<li>“–initialize-insecure”不会生成密码 </li>
+<li>“–datadir”目录下不能有数据文件</li>
+</ul>
+</blockquote>
+<h3 id="启动数据库"><a href="#启动数据库" class="headerlink" title="启动数据库"></a>启动数据库</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># systemctl start mysqld</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># systemctl status mysqld</span></span><br><span class="line">● mysqld.service - LSB: start and stop MySQL</span><br><span class="line">   Loaded: loaded (/etc/rc.d/init.d/mysqld)</span><br><span class="line">   Active: active (running) since 一 2016-07-18 11:15:35 CST; 8s ago</span><br><span class="line">     Docs: man:systemd-sysv-generator(8)</span><br><span class="line">  Process: 23927 ExecStart=/etc/rc.d/init.d/mysqld start (code=exited, status=0/SUCCESS)</span><br><span class="line">   CGroup: /system.slice/mysqld.service</span><br><span class="line">           ├─23940 /bin/sh /usr/<span class="built_in">local</span>/mysql/bin/mysqld_safe --datadir=/data/mysql --pid-file=/data/mysql/mysql.pid</span><br><span class="line">           └─24776 /usr/<span class="built_in">local</span>/mysql/bin/mysqld --basedir=/usr/<span class="built_in">local</span>/mysql --datadir=/data/mysql --plugin-dir=/usr/<span class="built_in">local</span>/mysql/lib/plugin --user=mysql --log-error=/data/mysql/mysql-err...</span><br><span class="line"></span><br><span class="line">7月 18 11:15:32 snails systemd[1]: Starting LSB: start and stop MySQL...</span><br><span class="line">7月 18 11:15:35 snails mysqld[23927]: Starting MySQL..[  OK  ]</span><br><span class="line">7月 18 11:15:35 snails systemd[1]: Started LSB: start and stop MySQL.</span><br></pre></td></tr></table></figure>
+<h3 id="查看MySQL服务进程和端口"><a href="#查看MySQL服务进程和端口" class="headerlink" title="查看MySQL服务进程和端口"></a>查看MySQL服务进程和端口</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># ps -ef | grep mysql</span></span><br><span class="line">root     23940     1  0 11:15 ?        00:00:00 /bin/sh /usr/<span class="built_in">local</span>/mysql/bin/mysqld_safe --datadir=/data/mysql --pid-file=/data/mysql/mysql.pid</span><br><span class="line">mysql    24776 23940  0 11:15 ?        00:00:00 /usr/<span class="built_in">local</span>/mysql/bin/mysqld --basedir=/usr/<span class="built_in">local</span>/mysql --datadir=/data/mysql --plugin-dir=/usr/<span class="built_in">local</span>/mysql/lib/plugin --user=mysql --log-error=/data/mysql/mysql-error.log --open-files-limit=65535 --pid-file=/data/mysql/mysql.pid --socket=/dev/shm/mysql.sock --port=3306</span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># netstat -tunpl | grep 3306</span></span><br><span class="line">tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN      24776/mysqld</span><br></pre></td></tr></table></figure>
+<h3 id="设置数据库root用户密码"><a href="#设置数据库root用户密码" class="headerlink" title="设置数据库root用户密码"></a>设置数据库root用户密码</h3><p>　　MySQL和Oracle数据库一样，数据库也默认自带了一个 root 用户（这个和当前Linux主机上的root用户是完全不搭边的），我们在设置好MySQL数据库的安全配置后初始化root用户的密码。配制过程中，一路输入 y 就行了。这里只说明下MySQL5.7.13版本中，用户密码策略分成低级 LOW 、中等 MEDIUM 和超强 STRONG 三种，推荐使用中等 MEDIUM 级别！<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># mysql_secure_installation</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="常用操作"><a href="#常用操作" class="headerlink" title="常用操作"></a>常用操作</h2><h3 id="将MySQL数据库的动态链接库共享至系统链接库"><a href="#将MySQL数据库的动态链接库共享至系统链接库" class="headerlink" title="将MySQL数据库的动态链接库共享至系统链接库"></a>将MySQL数据库的动态链接库共享至系统链接库</h3><p>　　一般MySQL数据库还会被类似于PHP等服务调用，所以我们需要将MySQL编译后的lib库文件添加至当前Linux主机链接库 /etc/ld.so.conf.d/<br> 下，这样MySQL服务就可以被其它服务调用了。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> [root@snails mysql-5.7.13]<span class="comment"># ldconfig |grep mysql</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># echo "/usr/local/mysql/lib" &gt; /etc/ld.so.conf.d/mysql.conf</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># ldconfig</span></span><br><span class="line">[root@snails mysql-5.7.13]<span class="comment"># ldconfig -v |grep mysql</span></span><br><span class="line">ldconfig: 无法对 /libx32 进行 <span class="built_in">stat</span> 操作: 没有那个文件或目录</span><br><span class="line">ldconfig: 多次给出路径“/usr/lib”</span><br><span class="line">ldconfig: 多次给出路径“/usr/lib64”</span><br><span class="line">ldconfig: 无法对 /usr/libx32 进行 <span class="built_in">stat</span> 操作: 没有那个文件或目录</span><br><span class="line">/usr/lib64/mysql:</span><br><span class="line">	libmysqlclient.so.18 -&gt; libmysqlclient.so.18.0.0</span><br><span class="line">/usr/<span class="built_in">local</span>/mysql/lib:</span><br><span class="line">	libmysqlclient.so.20 -&gt; libmysqlclient.so.20.3.0</span><br></pre></td></tr></table></figure></p>
+<h3 id="创建其它MySQL数据库用户"><a href="#创建其它MySQL数据库用户" class="headerlink" title="创建其它MySQL数据库用户"></a>创建其它MySQL数据库用户</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@snails mysql-5.7.13]<span class="comment"># mysql -uroot -p</span></span><br><span class="line">Enter password: </span><br><span class="line">Welcome to the MySQL monitor.  Commands end with ; or \g.</span><br><span class="line">Your MySQL connection id is 4</span><br><span class="line">Server version: 5.7.13-log Source distribution</span><br><span class="line"></span><br><span class="line">Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.</span><br><span class="line"></span><br><span class="line">Oracle is a registered trademark of Oracle Corporation and/or its</span><br><span class="line">affiliates. Other names may be trademarks of their respective</span><br><span class="line">owners.</span><br><span class="line"></span><br><span class="line">Type <span class="string">'help;'</span> or <span class="string">'\h'</span> <span class="keyword">for</span> help. Type <span class="string">'\c'</span> to clear the current input statement.</span><br><span class="line">mysql&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt;CREATE DATABASE `tonnydb` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;</span><br><span class="line">Query OK, 1 row affected (0.01 sec)</span><br><span class="line">mysql&gt; show databases;</span><br><span class="line">+--------------------+</span><br><span class="line">| Database           |</span><br><span class="line">+--------------------+</span><br><span class="line">| information_schema |</span><br><span class="line">| mysql              |</span><br><span class="line">| performance_schema |</span><br><span class="line">| sys                |</span><br><span class="line">| tonnydb            |</span><br><span class="line">+--------------------+</span><br><span class="line">5 rows in set (0.00 sec)</span><br><span class="line">mysql&gt; grant all privileges on tonnydb.* to &apos;tonny@%&apos; identified by &apos;Hi.Tonny@888&apos;;</span><br><span class="line">Query OK, 0 rows affected, 1 warning (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; flush privileges;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; exit</span><br><span class="line">Bye</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/mysql/">mysql</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/18/mysql/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/18/mysql/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/15/deepin/" title="我是如何在Deepin Linux系统上工作的" itemprop="url">我是如何在Deepin Linux系统上工作的</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-15T07:29:25.000Z" itemprop="datePublished"> 发表于 2016-07-15</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　我是一名java工程师，一直以来都以Eclipse进行java开发。从2015年底开始在Linux上工作，期间安装过Ubuntu\Deepin\CentOS等系统，最终确定在Deepin下工作是被其界面吸引。<br>　　最开始用的Deepin还是基于Ubuntu开发的，从15版本开始是基于Debian上定制开发。尝试请下载：<a href="https://www.deepin.org/download.html" target="_blank" rel="external">下载地址</a> </p>
+<p>下面说说我常用的软件及配置：</p>
+<h3 id="基础工具"><a href="#基础工具" class="headerlink" title="基础工具"></a>基础工具</h3><ul>
+<li>以下是我常用的一些工具<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install git xclip htop guake tree tmux</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<blockquote>
+<p><em>git</em> 用来管理源代码的版本及分支<br>   <em>xclip</em> 用来操作剪贴板<br>   <em>htop</em> top加强管理工具<br>   <em>guake</em> 可以后台运行的终端，F12可在后台放音乐。<br>   <em>tree</em> 用来显示目录<br>  <em>tmux</em> 用来管理终端连接</p>
+</blockquote>
+<h3 id="系统自带软件"><a href="#系统自带软件" class="headerlink" title="系统自带软件"></a>系统自带软件</h3><ul>
+<li><strong>CrossOver</strong> 用于运行widows相关的软件，如QQ</li>
+<li><strong>WPS</strong> 用于文档、演示文稿、电子表格操作</li>
+<li><strong>深度商店</strong> 用于快速安装仓库自带软件</li>
+<li><strong>深度音乐/深度影院/深度截图</strong> 用于娱乐、截图</li>
+<li><strong>Gedit</strong> 用于文本编辑</li>
+<li><strong>深度终端</strong> 用于命令操作，可调整为zsh，并用oh-my-zsh加强</li>
+<li><strong>文件管理器</strong> 用于文件浏览、查看、删除</li>
+<li><strong>搜狐拼音/五笔拼音</strong>　用于输入法</li>
+<li><strong>Chrome浏览器</strong> 用于上网及网页开发调试<ul>
+<li>常用插件有：<br><a href=""><em>Axure RP Extension for Chrome</em></a> 用于查看产品原型<br><a href=""><em>JSONView</em></a> 用于查看格式化Json<br><a href=""><em>Momentum</em></a> 用于默认开tab页使用优美图片<br><a href="http://www.oschina.net/p/octotree" target="_blank" rel="external"><em>Octotree</em></a> 用于树状查看github代码<br><a href="http://www.oschina.net/p/switchyomega" target="_blank" rel="external"><em>SwitchyOmega</em></a> 用于代理设置<br><a href="http://www.oschina.net/p/postman" target="_blank" rel="external"><em>Postman</em></a> 用于API接口测试<br><a href=""><em>今天日期</em></a> 用于查看当前的时间</li>
+</ul>
+</li>
+</ul>
+<h3 id="常用工具软件"><a href="#常用工具软件" class="headerlink" title="常用工具软件"></a>常用工具软件</h3><ul>
+<li>有道词典 翻译软件，用于专业词汇查找。</li>
+<li>为知笔记 记录软件，用于工作总结。</li>
+<li>VirtualBox 虚拟机软件，用于Windos虚拟、Android虚拟。</li>
+<li>Wireshark 抓包软件，用于协议分析、调试</li>
+</ul>
+<h3 id="附加软件"><a href="#附加软件" class="headerlink" title="附加软件"></a>附加软件</h3><ul>
+<li>微信网页版</li>
+<li>钉钉</li>
+<li>Firefox</li>
+</ul>
+<h3 id="JAVA开发环境"><a href="#JAVA开发环境" class="headerlink" title="JAVA开发环境"></a>JAVA开发环境</h3><h4 id="IntelliJ-IDEA"><a href="#IntelliJ-IDEA" class="headerlink" title="IntelliJ IDEA"></a>IntelliJ IDEA</h4><pre><code>长期使用Eclipse后再用IDEA就很少用回Eclipse了，毕竟IDEA功能比Eclipse强大很多。
+</code></pre><ul>
+<li>集成了Maven环境，可以修改配置路径指向自己下载的maven。</li>
+<li>集成了Git环境，方便进行分支切换、代码提交。</li>
+<li>调试功能强大，用Visual Studio的同学都会佩服其调试功能，IDEA也是如此。</li>
+<li>更高的开发效率，默认深色主题，重构、跳转定义、删除/复制行方便。</li>
+<li>集成命令行终端，相当多的快捷键，并可配合终端操作。</li>
+</ul>
+<h4 id="Dbeaver"><a href="#Dbeaver" class="headerlink" title="Dbeaver"></a>Dbeaver</h4><pre><code>用于数据库操作
+</code></pre><h3 id="Sublime-Text-3"><a href="#Sublime-Text-3" class="headerlink" title="Sublime Text 3"></a>Sublime Text 3</h3><pre><code>用于代码查看及编译
+</code></pre><h3 id="Visual-Studio-Code"><a href="#Visual-Studio-Code" class="headerlink" title="Visual Studio Code"></a>Visual Studio Code</h3><pre><code>用于golang开发
+</code></pre>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/操作系统/">操作系统</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/15/deepin/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/15/deepin/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/07/14/tomcat/" title="在CentOS7上用systemctl配置tomcat 8" itemprop="url">在CentOS7上用systemctl配置tomcat 8</a>
   </h1>
   <p class="article-author">By
@@ -676,88 +874,6 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2016/07/07/hexo/" title="hexo" itemprop="url">hexo</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
-		
-  <p class="article-time">
-    <time datetime="2016-07-07T05:55:23.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h1 id="Hexo"><a href="#Hexo" class="headerlink" title="Hexo"></a>Hexo</h1><p><a href="https://travis-ci.org/hexojs/hexo" target="_blank" rel="external"><img src="https://travis-ci.org/hexojs/hexo.svg?branch=master" alt="Build Status"></a>  <a href="http://badge.fury.io/js/hexo" target="_blank" rel="external"><img src="https://badge.fury.io/js/hexo.svg" alt="NPM version"></a> <a href="https://coveralls.io/r/hexojs/hexo?branch=master" target="_blank" rel="external"><img src="https://coveralls.io/repos/hexojs/hexo/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://ci.appveyor.com/project/tommy351/hexo/branch/master" target="_blank" rel="external"><img src="https://ci.appveyor.com/api/projects/status/hpx3lduqjj2t6uqq/branch/master?svg=true" alt="Build status"></a></p>
-<p>A fast, simple &amp; powerful blog framework, powered by <a href="http://nodejs.org" target="_blank" rel="external">Node.js</a>.</p>
-<h2 id="Features"><a href="#Features" class="headerlink" title="Features"></a>Features</h2><ul>
-<li>Blazing fast generating</li>
-<li>Support for GitHub Flavored Markdown and most Octopress plugins</li>
-<li>One-command deploy to GitHub Pages, Heroku, etc.</li>
-<li>Powerful plugin system</li>
-</ul>
-<h2 id="Installation"><a href="#Installation" class="headerlink" title="Installation"></a>Installation</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-cli -g</span><br></pre></td></tr></table></figure>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><p><strong>Setup your blog</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ hexo init blog</span><br><span class="line">$ <span class="built_in">cd</span> blog</span><br></pre></td></tr></table></figure>
-<p><strong>Start the server</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p><strong>Create a new post</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"Hello Hexo"</span></span><br></pre></td></tr></table></figure>
-<p><strong>Generate static files</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<h2 id="More-Information"><a href="#More-Information" class="headerlink" title="More Information"></a>More Information</h2><ul>
-<li>Read the <a href="https://hexo.io/" target="_blank" rel="external">documentation</a></li>
-<li>Find solutions in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a></li>
-<li>Join discussion on <a href="https://groups.google.com/group/hexo" target="_blank" rel="external">Google Group</a></li>
-<li>See the <a href="https://hexo.io/plugins/" target="_blank" rel="external">plugin list</a> and the <a href="https://hexo.io/themes/" target="_blank" rel="external">theme list</a> on wiki</li>
-<li>Follow <a href="https://twitter.com/hexojs" target="_blank" rel="external">@hexojs</a> for latest news</li>
-</ul>
-<h2 id="License"><a href="#License" class="headerlink" title="License"></a>License</h2><p>MIT</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/github/">github</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/07/07/hexo/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/07/hexo/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
       <a href="/2016/07/07/hello-world/" title="在GitHub上创建博客" itemprop="url">在GitHub上创建博客</a>
   </h1>
   <p class="article-author">By
@@ -829,6 +945,10 @@
 
 
 
+  <nav id="page-nav" class="clearfix">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
+  </nav>
+
 </div>
       <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
 
@@ -862,6 +982,14 @@
 			
 		
 			
+				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
 			
 		
@@ -870,11 +998,11 @@
 			
 		
 			
-				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
 			
 		
 		</ul>
