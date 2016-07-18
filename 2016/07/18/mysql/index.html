@@ -4,41 +4,41 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>技术资料分享小站</title>
+    <title>在CentOS上编译安装MySQL 5.7.13步骤详解 | 技术资料分享小站</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Tonny Luo">
     
 
     
-    <meta name="description" content="title: 在CentOS上编译安装MySQL 5.7.13步骤详解date: 2016-07-18 11:38:37
-tags: mysqlMySQL 5.7主要特性
+    <meta name="description" content="MySQL 5.7主要特性
 更好的性能 对于多核CPU、固态硬盘、锁有着更好的优化，每秒100W QPS已不再是MySQL的追求，下个版本能否上200W QPS才是用户更关心的。
 
 
 更好的InnoDB存储引擎
-更为健壮的复制功能  复制带来了数据完全不">
+更为健壮的复制功能  复制带来了数据完全不丢失的方案，传统金融客户也可以选择使用。MySQL数据库。此外，GTID在线平滑升级也变得可能。
+更好的优化器  优化器代码重构的意义将在这个版本">
 <meta property="og:type" content="article">
-<meta property="og:title" content="技术资料分享小站">
+<meta property="og:title" content="在CentOS上编译安装MySQL 5.7.13步骤详解">
 <meta property="og:url" content="http://luohoufu.github.io/2016/07/18/mysql/index.html">
 <meta property="og:site_name" content="技术资料分享小站">
-<meta property="og:description" content="title: 在CentOS上编译安装MySQL 5.7.13步骤详解date: 2016-07-18 11:38:37
-tags: mysqlMySQL 5.7主要特性
+<meta property="og:description" content="MySQL 5.7主要特性
 更好的性能 对于多核CPU、固态硬盘、锁有着更好的优化，每秒100W QPS已不再是MySQL的追求，下个版本能否上200W QPS才是用户更关心的。
 
 
 更好的InnoDB存储引擎
-更为健壮的复制功能  复制带来了数据完全不">
-<meta property="og:updated_time" content="2016-07-18T03:39:34.553Z">
+更为健壮的复制功能  复制带来了数据完全不丢失的方案，传统金融客户也可以选择使用。MySQL数据库。此外，GTID在线平滑升级也变得可能。
+更好的优化器  优化器代码重构的意义将在这个版本">
+<meta property="og:updated_time" content="2016-07-18T03:42:58.060Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="技术资料分享小站">
-<meta name="twitter:description" content="title: 在CentOS上编译安装MySQL 5.7.13步骤详解date: 2016-07-18 11:38:37
-tags: mysqlMySQL 5.7主要特性
+<meta name="twitter:title" content="在CentOS上编译安装MySQL 5.7.13步骤详解">
+<meta name="twitter:description" content="MySQL 5.7主要特性
 更好的性能 对于多核CPU、固态硬盘、锁有着更好的优化，每秒100W QPS已不再是MySQL的追求，下个版本能否上200W QPS才是用户更关心的。
 
 
 更好的InnoDB存储引擎
-更为健壮的复制功能  复制带来了数据完全不">
+更为健壮的复制功能  复制带来了数据完全不丢失的方案，传统金融客户也可以选择使用。MySQL数据库。此外，GTID在线平滑升级也变得可能。
+更好的优化器  优化器代码重构的意义将在这个版本">
 
     
     <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
@@ -98,14 +98,14 @@ tags: mysqlMySQL 5.7主要特性
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2016/07/18/mysql/" title="" itemprop="url"></a>
+      <a href="/2016/07/18/mysql/" title="在CentOS上编译安装MySQL 5.7.13步骤详解" itemprop="url">在CentOS上编译安装MySQL 5.7.13步骤详解</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
 		
   <p class="article-time">
-    <time datetime="2016-07-18T03:39:34.621Z" itemprop="datePublished"> 发表于 2016-07-18</time>
+    <time datetime="2016-07-18T03:38:37.000Z" itemprop="datePublished"> 发表于 2016-07-18</time>
     
   </p>
 </header>
@@ -114,13 +114,11 @@ tags: mysqlMySQL 5.7主要特性
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#tags-mysql"><span class="toc-number">1.</span> <span class="toc-text">tags: mysql</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL-5-7主要特性"><span class="toc-number">2.</span> <span class="toc-text">MySQL 5.7主要特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装准备"><span class="toc-number">3.</span> <span class="toc-text">安装准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装依赖包"><span class="toc-number">3.1.</span> <span class="toc-text">安装依赖包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#下载相应源码包"><span class="toc-number">3.2.</span> <span class="toc-text">下载相应源码包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#新建MySQL用户和用户组"><span class="toc-number">3.3.</span> <span class="toc-text">新建MySQL用户和用户组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#预编译"><span class="toc-number">3.4.</span> <span class="toc-text">预编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">3.5.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置启动脚本，开机自启动"><span class="toc-number">3.6.</span> <span class="toc-text">设置启动脚本，开机自启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置文件"><span class="toc-number">3.7.</span> <span class="toc-text">配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#添加mysql的环境变量"><span class="toc-number">3.8.</span> <span class="toc-text">添加mysql的环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#初始化数据库"><span class="toc-number">3.9.</span> <span class="toc-text">初始化数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动数据库"><span class="toc-number">3.10.</span> <span class="toc-text">启动数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查看MySQL服务进程和端口"><span class="toc-number">3.11.</span> <span class="toc-text">查看MySQL服务进程和端口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置数据库root用户密码"><span class="toc-number">3.12.</span> <span class="toc-text">设置数据库root用户密码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#常用操作"><span class="toc-number">4.</span> <span class="toc-text">常用操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#将MySQL数据库的动态链接库共享至系统链接库"><span class="toc-number">4.1.</span> <span class="toc-text">将MySQL数据库的动态链接库共享至系统链接库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建其它MySQL数据库用户"><span class="toc-number">4.2.</span> <span class="toc-text">创建其它MySQL数据库用户</span></a></li></ol></li></ol>
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL-5-7主要特性"><span class="toc-number">1.</span> <span class="toc-text">MySQL 5.7主要特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装准备"><span class="toc-number">2.</span> <span class="toc-text">安装准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装依赖包"><span class="toc-number">2.1.</span> <span class="toc-text">安装依赖包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#下载相应源码包"><span class="toc-number">2.2.</span> <span class="toc-text">下载相应源码包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#新建MySQL用户和用户组"><span class="toc-number">2.3.</span> <span class="toc-text">新建MySQL用户和用户组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#预编译"><span class="toc-number">2.4.</span> <span class="toc-text">预编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">2.5.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置启动脚本，开机自启动"><span class="toc-number">2.6.</span> <span class="toc-text">设置启动脚本，开机自启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置文件"><span class="toc-number">2.7.</span> <span class="toc-text">配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#添加mysql的环境变量"><span class="toc-number">2.8.</span> <span class="toc-text">添加mysql的环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#初始化数据库"><span class="toc-number">2.9.</span> <span class="toc-text">初始化数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动数据库"><span class="toc-number">2.10.</span> <span class="toc-text">启动数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查看MySQL服务进程和端口"><span class="toc-number">2.11.</span> <span class="toc-text">查看MySQL服务进程和端口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置数据库root用户密码"><span class="toc-number">2.12.</span> <span class="toc-text">设置数据库root用户密码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#常用操作"><span class="toc-number">3.</span> <span class="toc-text">常用操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#将MySQL数据库的动态链接库共享至系统链接库"><span class="toc-number">3.1.</span> <span class="toc-text">将MySQL数据库的动态链接库共享至系统链接库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建其它MySQL数据库用户"><span class="toc-number">3.2.</span> <span class="toc-text">创建其它MySQL数据库用户</span></a></li></ol></li></ol>
 		
 		</div>
 		
-		<hr>
-<p>title: 在CentOS上编译安装MySQL 5.7.13步骤详解<br>date: 2016-07-18 11:38:37</p>
-<h2 id="tags-mysql"><a href="#tags-mysql" class="headerlink" title="tags: mysql"></a>tags: mysql</h2><h2 id="MySQL-5-7主要特性"><a href="#MySQL-5-7主要特性" class="headerlink" title="MySQL 5.7主要特性"></a>MySQL 5.7主要特性</h2><ol>
+		<h2 id="MySQL-5-7主要特性"><a href="#MySQL-5-7主要特性" class="headerlink" title="MySQL 5.7主要特性"></a>MySQL 5.7主要特性</h2><ol>
 <li>更好的性能<br> 对于多核CPU、固态硬盘、锁有着更好的优化，每秒100W QPS已不再是MySQL的追求，下个版本能否上200W QPS才是用户更关心的。</li>
 </ol>
 <ul>
@@ -165,13 +163,18 @@ tags: mysqlMySQL 5.7主要特性
 <div class="article-catetags">
 
 
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/mysql/">mysql</a>
+  </div>
+
 </div>
 
 
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://luohoufu.github.io/2016/07/18/mysql/" data-title="技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  <div data-url="http://luohoufu.github.io/2016/07/18/mysql/" data-title="在CentOS上编译安装MySQL 5.7.13步骤详解 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -197,7 +200,7 @@ tags: mysqlMySQL 5.7主要特性
 
 	
 <section id="comments" class="comment">
-	<div class="ds-thread" data-thread-key="2016/07/18/mysql/" data-title="" data-url="http://luohoufu.github.io/2016/07/18/mysql/"></div>
+	<div class="ds-thread" data-thread-key="2016/07/18/mysql/" data-title="在CentOS上编译安装MySQL 5.7.13步骤详解" data-url="http://luohoufu.github.io/2016/07/18/mysql/"></div>
 </section>
 
 
@@ -207,7 +210,7 @@ tags: mysqlMySQL 5.7主要特性
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
  
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#tags-mysql"><span class="toc-number">1.</span> <span class="toc-text">tags: mysql</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL-5-7主要特性"><span class="toc-number">2.</span> <span class="toc-text">MySQL 5.7主要特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装准备"><span class="toc-number">3.</span> <span class="toc-text">安装准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装依赖包"><span class="toc-number">3.1.</span> <span class="toc-text">安装依赖包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#下载相应源码包"><span class="toc-number">3.2.</span> <span class="toc-text">下载相应源码包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#新建MySQL用户和用户组"><span class="toc-number">3.3.</span> <span class="toc-text">新建MySQL用户和用户组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#预编译"><span class="toc-number">3.4.</span> <span class="toc-text">预编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">3.5.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置启动脚本，开机自启动"><span class="toc-number">3.6.</span> <span class="toc-text">设置启动脚本，开机自启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置文件"><span class="toc-number">3.7.</span> <span class="toc-text">配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#添加mysql的环境变量"><span class="toc-number">3.8.</span> <span class="toc-text">添加mysql的环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#初始化数据库"><span class="toc-number">3.9.</span> <span class="toc-text">初始化数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动数据库"><span class="toc-number">3.10.</span> <span class="toc-text">启动数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查看MySQL服务进程和端口"><span class="toc-number">3.11.</span> <span class="toc-text">查看MySQL服务进程和端口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置数据库root用户密码"><span class="toc-number">3.12.</span> <span class="toc-text">设置数据库root用户密码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#常用操作"><span class="toc-number">4.</span> <span class="toc-text">常用操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#将MySQL数据库的动态链接库共享至系统链接库"><span class="toc-number">4.1.</span> <span class="toc-text">将MySQL数据库的动态链接库共享至系统链接库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建其它MySQL数据库用户"><span class="toc-number">4.2.</span> <span class="toc-text">创建其它MySQL数据库用户</span></a></li></ol></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL-5-7主要特性"><span class="toc-number">1.</span> <span class="toc-text">MySQL 5.7主要特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装准备"><span class="toc-number">2.</span> <span class="toc-text">安装准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装依赖包"><span class="toc-number">2.1.</span> <span class="toc-text">安装依赖包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#下载相应源码包"><span class="toc-number">2.2.</span> <span class="toc-text">下载相应源码包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#新建MySQL用户和用户组"><span class="toc-number">2.3.</span> <span class="toc-text">新建MySQL用户和用户组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#预编译"><span class="toc-number">2.4.</span> <span class="toc-text">预编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译安装"><span class="toc-number">2.5.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置启动脚本，开机自启动"><span class="toc-number">2.6.</span> <span class="toc-text">设置启动脚本，开机自启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置文件"><span class="toc-number">2.7.</span> <span class="toc-text">配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#添加mysql的环境变量"><span class="toc-number">2.8.</span> <span class="toc-text">添加mysql的环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#初始化数据库"><span class="toc-number">2.9.</span> <span class="toc-text">初始化数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动数据库"><span class="toc-number">2.10.</span> <span class="toc-text">启动数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查看MySQL服务进程和端口"><span class="toc-number">2.11.</span> <span class="toc-text">查看MySQL服务进程和端口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置数据库root用户密码"><span class="toc-number">2.12.</span> <span class="toc-text">设置数据库root用户密码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#常用操作"><span class="toc-number">3.</span> <span class="toc-text">常用操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#将MySQL数据库的动态链接库共享至系统链接库"><span class="toc-number">3.1.</span> <span class="toc-text">将MySQL数据库的动态链接库共享至系统链接库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建其它MySQL数据库用户"><span class="toc-number">3.2.</span> <span class="toc-text">创建其它MySQL数据库用户</span></a></li></ol></li></ol>
  
   </div>
 
@@ -258,6 +261,10 @@ tags: mysqlMySQL 5.7主要特性
 		
 			
 				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
 			
 		
 		</ul>
