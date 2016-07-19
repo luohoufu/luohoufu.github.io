@@ -1,0 +1,648 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Zookeeper介绍、原理及应用 | 技术资料分享小站</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Tonny Luo">
+    
+
+    
+    <meta name="description" content="Zookeeper简介　　Zookeeper 分布式服务框架是 Apache Hadoop 的一个子项目，它主要是用来解决分布式应用中经常遇到的一些数据管理问题，如：统一命名服务、状态同步服务、集群管理、分布式应用配置项的管理等等。
+Zookeeper基本概念zk角色　　Zookeeper中的角色主要有以下三类，如下表所示：
+zk service网络结构　　Zookeeper的工作集群可以简单分成">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zookeeper介绍、原理及应用">
+<meta property="og:url" content="http://luohoufu.github.io/2016/07/19/zookeeper1/index.html">
+<meta property="og:site_name" content="技术资料分享小站">
+<meta property="og:description" content="Zookeeper简介　　Zookeeper 分布式服务框架是 Apache Hadoop 的一个子项目，它主要是用来解决分布式应用中经常遇到的一些数据管理问题，如：统一命名服务、状态同步服务、集群管理、分布式应用配置项的管理等等。
+Zookeeper基本概念zk角色　　Zookeeper中的角色主要有以下三类，如下表所示：
+zk service网络结构　　Zookeeper的工作集群可以简单分成">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-f12f74124253c549.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-8ee5ac2960de9b36.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-77a36d514295b3e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-6e6b829a9ac88fbf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-5a1563f58f16151c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-e096f571dc2d90b8.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-ee96c8df264bc94a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-1bc7025a0a7233a1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-677c4e636230b735.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2016-07-19T07:12:51.943Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zookeeper介绍、原理及应用">
+<meta name="twitter:description" content="Zookeeper简介　　Zookeeper 分布式服务框架是 Apache Hadoop 的一个子项目，它主要是用来解决分布式应用中经常遇到的一些数据管理问题，如：统一命名服务、状态同步服务、集群管理、分布式应用配置项的管理等等。
+Zookeeper基本概念zk角色　　Zookeeper中的角色主要有以下三类，如下表所示：
+zk service网络结构　　Zookeeper的工作集群可以简单分成">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1292466-f12f74124253c549.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+    
+    <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="技术资料分享小站" title="技术资料分享小站"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="技术资料分享小站">技术资料分享小站</a></h1>
+				<h2 class="blog-motto">点滴积累，细细回味。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">简介</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:luohoufu.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/19/zookeeper1/" title="Zookeeper介绍、原理及应用" itemprop="url">Zookeeper介绍、原理及应用</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-19T07:11:52.000Z" itemprop="datePublished"> 发表于 2016-07-19</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper简介"><span class="toc-number">1.</span> <span class="toc-text">Zookeeper简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper基本概念"><span class="toc-number">2.</span> <span class="toc-text">Zookeeper基本概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#zk角色"><span class="toc-number">2.1.</span> <span class="toc-text">zk角色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk-service网络结构"><span class="toc-number">2.2.</span> <span class="toc-text">zk service网络结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk命名空间结构"><span class="toc-number">2.3.</span> <span class="toc-text">zk命名空间结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk读写数据"><span class="toc-number">2.4.</span> <span class="toc-text">zk读写数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk-znode类型"><span class="toc-number">2.5.</span> <span class="toc-text">zk znode类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper设计目的"><span class="toc-number">3.</span> <span class="toc-text">Zookeeper设计目的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper工作原理"><span class="toc-number">4.</span> <span class="toc-text">Zookeeper工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#选主流程"><span class="toc-number">4.1.</span> <span class="toc-text">选主流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#同步流程"><span class="toc-number">4.2.</span> <span class="toc-text">同步流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#工作流程"><span class="toc-number">4.3.</span> <span class="toc-text">工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Leader工作流程"><span class="toc-number">4.3.1.</span> <span class="toc-text">Leader工作流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Follower工作流程"><span class="toc-number">4.3.2.</span> <span class="toc-text">Follower工作流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#应用篇"><span class="toc-number">5.</span> <span class="toc-text">应用篇</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Master节点管理"><span class="toc-number">5.1.</span> <span class="toc-text">Master节点管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#集群worker管理"><span class="toc-number">5.2.</span> <span class="toc-text">集群worker管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分布式锁"><span class="toc-number">5.3.</span> <span class="toc-text">分布式锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置文件管理"><span class="toc-number">5.4.</span> <span class="toc-text">配置文件管理</span></a></li></ol></li></ol>
+		
+		</div>
+		
+		<h2 id="Zookeeper简介"><a href="#Zookeeper简介" class="headerlink" title="Zookeeper简介"></a>Zookeeper简介</h2><p>　　Zookeeper 分布式服务框架是 Apache Hadoop 的一个子项目，它主要是用来解决分布式应用中经常遇到的一些数据管理问题，如：统一命名服务、状态同步服务、集群管理、分布式应用配置项的管理等等。</p>
+<h2 id="Zookeeper基本概念"><a href="#Zookeeper基本概念" class="headerlink" title="Zookeeper基本概念"></a>Zookeeper基本概念</h2><h3 id="zk角色"><a href="#zk角色" class="headerlink" title="zk角色"></a>zk角色</h3><p>　　Zookeeper中的角色主要有以下三类，如下表所示：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-f12f74124253c549.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="zookeeper角色"></p>
+<h3 id="zk-service网络结构"><a href="#zk-service网络结构" class="headerlink" title="zk service网络结构"></a>zk service网络结构</h3><p>　　Zookeeper的工作集群可以简单分成两类，一个是Leader，唯一一个，其余的都是follower，如何确定Leader是通过内部选举确定的。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-8ee5ac2960de9b36.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="zookeeper服务"></p>
+<blockquote>
+<ol>
+<li>Leader和各个follower是互相通信的，对于zk系统的数据都是保存在内存里面的，同样也会备份一份在磁盘上。<br>　　对于每个zk节点而言，可以看做每个zk节点的命名空间是一样的，也就是有同样的数据。（可查看下面的树结构）</li>
+</ol>
+<ul>
+<li>如果Leader挂了，zk集群会重新选举，在毫秒级别就会重新选举出一个Leaer。</li>
+<li>集群中除非有一半以上的zk节点挂了，zk service才不可用。</li>
+</ul>
+</blockquote>
+<h3 id="zk命名空间结构"><a href="#zk命名空间结构" class="headerlink" title="zk命名空间结构"></a>zk命名空间结构</h3><p>　　Zookeeper的命名空间就是zk应用的文件系统，它和linux的文件系统很像，也是树状，这样就可以确定每个路径都是唯一的，对于命名空间的操作必须都是绝对路径操作。与linux文件系统不同的是，linux文件系统有目录和文件的区别，而zk统一叫做znode，一个znode节点可以包含子znode，同时也可以包含数据。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-77a36d514295b3e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="zookeeper树结构"></p>
+<blockquote>
+<p>提示：<br>比如/Nginx/conf，/是一个znode，/Nginx是/的子znode，/Nginx还可以包含数据，数据内容就是所有安装Nginx的机器IP，/Nginx/conf是/Nginx子znode，它也可以包含内容，数据就是Nginx的配置文件内容。在应用中，我们可以通过这样一个路径就可以获得所有安装Nginx的机器IP列表，还可以获得这些机器上Nginx的配置文件。</p>
+</blockquote>
+<h3 id="zk读写数据"><a href="#zk读写数据" class="headerlink" title="zk读写数据"></a>zk读写数据</h3><p><img src="http://upload-images.jianshu.io/upload_images/1292466-6e6b829a9ac88fbf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="zookeeper读写数据"></p>
+<ul>
+<li>写数据，但一个客户端进行写数据请求时，会指定zk集群中节点，如果是follower接收到写请求，就会把请求转发给Leader，Leader通过内部的Zab协议进行原子广播，直到所有zk节点都成功写了数据后（内存同步以及磁盘更新），这次写请求算是完成，然后zk service就会给client发回响应</li>
+<li>读数据，因为集群中所有的zk节点都呈现一个同样的命名空间视图（就是结构数据），上面的写请求已经保证了写一次数据必须保证集群所有的zk节点都是同步命名空间的，所以读的时候可以在任意一台zk节点上<blockquote>
+<p>ps:其实写数据的时候不是要保证所有zk节点都写完才响应，而是保证一半以上的节点写完了就把这次变更更新到内存，并且当做最新命名空间的应用。所以在读数据的时候可能会读到不是最新的zk节点，这时候只能通过sync()解决。这里先不考虑了，假设整个zk service都是同步meta信息的，后面的文章再讨论。</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="zk-znode类型"><a href="#zk-znode类型" class="headerlink" title="zk znode类型"></a>zk znode类型</h3><p>　　Zookeeper中znode的节点创建时候是可以指定类型的，主要有下面几种类型。</p>
+<ol>
+<li>PERSISTENT：持久化znode节点，一旦创建这个znode点存储的数据不会主动消失，除非是客户端主动的delete。<br>SEQUENCE：顺序增加编号znode节点，比如ClientA去zk service上建立一个znode名字叫做/Nginx/conf，指定了这种类型的节点后zk会创建/Nginx/conf0000000000，ClientB再去创建就是创建/Nginx/conf0000000001，ClientC是创建/Nginx/conf0000000002，以后任意Client来创建这个znode都会得到一个比当前zk命名空间最大znode编号+1的znode，也就说任意一个Client去创建znode都是保证得到的znode是递增的，而且是唯一的。</li>
+</ol>
+<ul>
+<li>EPHEMERAL：临时znode节点，Client连接到zk service的时候会建立一个session，之后用这个zk连接实例创建该类型的znode，一旦Client关闭了zk的连接，服务器就会清除session，然后这个session建立的znode节点都会从命名空间消失。总结就是，这个类型的znode的生命周期是和Client建立的连接一样的。比如ClientA创建了一个EPHEMERAL的/Nginx/conf0000000011的znode节点，一旦ClientA的zk连接关闭，这个znode节点就会消失。整个zk service命名空间里就会删除这个znode节点。</li>
+<li>PERSISTENT|SEQUENTIAL：顺序自动编号的znode节点，这种znoe节点会根据当前已近存在的znode节点编号自动加 1，而且不会随session断开而消失。</li>
+<li>EPHEMERAL|SEQUENTIAL：临时自动编号节点，znode节点编号会自动增加，但是会随session消失而消失</li>
+</ul>
+<h2 id="Zookeeper设计目的"><a href="#Zookeeper设计目的" class="headerlink" title="Zookeeper设计目的"></a>Zookeeper设计目的</h2><ol>
+<li>最终一致性：client不论连接到哪个Server，展示给它都是同一个视图，这是zookeeper最重要的性能。</li>
+</ol>
+<ul>
+<li>可靠性：具有简单、健壮、良好的性能，如果消息m被到一台服务器接受，那么它将被所有的服务器接受。</li>
+<li>实时性：Zookeeper保证客户端将在一个时间间隔范围内获得服务器的更新信息，或者服务器失效的信息。但由于网络延时等原因，Zookeeper不能保证两个客户端能同时得到刚更新的数据，如果需要最新数据，应该在读数据之前调用sync()接口。</li>
+<li>等待无关（wait-free）：慢的或者失效的client不得干预快速的client的请求，使得每个client都能有效的等待。</li>
+<li>原子性：更新只能成功或者失败，没有中间状态。</li>
+<li>顺序性：包括全局有序和偏序两种：全局有序是指如果在一台服务器上消息a在消息b前发布，则在所有Server上消息a都将在消息b前被发布；偏序是指如果一个消息b在消息a后被同一个发送者发布，a必将排在b前面。</li>
+</ul>
+<h2 id="Zookeeper工作原理"><a href="#Zookeeper工作原理" class="headerlink" title="Zookeeper工作原理"></a>Zookeeper工作原理</h2><p>　　Zookeeper 的核心是广播，这个机制保证了各个Server之间的同步。实现这个机制的协议叫做Zab协议。<br>　　Zab协议有两种模式，它们分别是恢复模式（选主）和广播 模式（同步）。当服务启动或者在领导者崩溃后，Zab就进入了恢复模式，当领导者被选举出来，且大多数Server完成了和leader的状态同步以后， 恢复模式就结束了。状态同步保证了leader和Server具有相同的系统状态。为了保证事务的顺序一致性，zookeeper采用了递增的事务id号 （zxid）来标识事务。所有的提议（proposal）都在被提出的时候加上了zxid。实现中zxid是一个64位的数字，它高32位是epoch用 来标识leader关系是否改变，每次一个leader被选出来，它都会有一个新的epoch，标识当前属于那个leader的统治时期。低32位用于递增计数。</p>
+<p>每个Server在工作过程中有三种状态：</p>
+<ul>
+<li>LOOKING：当前Server不知道leader是谁，正在搜寻。</li>
+<li>LEADING：当前Server即为选举出来的leader。</li>
+<li>FOLLOWING：leader已经选举出来，当前Server与之同步。<h3 id="选主流程"><a href="#选主流程" class="headerlink" title="选主流程"></a>选主流程</h3>　　当 leader崩溃或者leader失去大多数的follower，这时候zk进入恢复模式，恢复模式需要重新选举出一个新的leader，让所有的 Server都恢复到一个正确的状态。<br>Zookeeper的选举算法有两种：<br>　　一种是基于basic paxos实现的，另外一种是基于fast paxos算法实现的。<br>系统默认的选举算法为fast paxos。<br><strong>basic paxos流程：</strong><ol>
+<li>选举线程由当前Server发起选举的线程担任，其主要功能是对投票结果进行统计，并选出推荐的Server；</li>
+</ol>
+<ul>
+<li>选举线程首先向所有Server发起一次询问(包括自己)；</li>
+<li>选举线程收到回复后，验证是否是自己发起的询问(验证zxid是否一致)，然后获取对方的id(myid)，并存储到当前询问对象列表中，最后获取对方提议的leader相关信息(id,zxid)，并将这些信息存储到当次选举的投票记录表中；</li>
+<li>收到所有Server回复以后，就计算出zxid最大的那个Server，并将这个Server相关信息设置成下一次要投票的Server；</li>
+<li>线程将当前zxid最大的Server设置为当前Server要推荐的Leader，如果此时获胜的Server获得n/2 + 1的Server票数， 设置当前推荐的leader为获胜的Server，将根据获胜的Server相关信息设置自己的状态，否则，继续这个过程，直到leader被选举出来。通 过流程分析我们可以得出：要使Leader获得多数Server的支持，则Server总数必须是奇数2n+1，且存活的Server的数目不得少于 n+1.每个Server启动后都会重复以上流程。在恢复模式下，如果是刚从崩溃状态恢复的或者刚启动的server还会从磁盘快照中恢复数据和会话信 息，zk会记录事务日志并定期进行快照，方便在恢复时进行状态恢复。<br>选举的具体流程图如下所示：</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-5a1563f58f16151c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="zk basic paxos选举"><br><strong>fast paxos流程：</strong><br>　　在选举过程中，某Server首先向所有Server提议自己要成为leader，当其它Server收到提议以后，解决epoch和 zxid的冲突，并接受对方的提议，然后向对方发送接受提议完成的消息，重复这个流程，最后一定能选举出Leader。<br>选举的具体流程图如下所示：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-e096f571dc2d90b8.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="zk fast paxos选举"></p>
+<h3 id="同步流程"><a href="#同步流程" class="headerlink" title="同步流程"></a>同步流程</h3><p>选完leader以后，zk就进入状态同步过程。</p>
+<ol>
+<li>leader等待server连接；</li>
+</ol>
+<ul>
+<li>Follower连接leader，将最大的zxid发送给leader；</li>
+<li>Leader根据follower的zxid确定同步点；</li>
+<li>完成同步后通知follower 已经成为uptodate状态；</li>
+<li>Follower收到uptodate消息后，又可以重新接受client的请求进行服务了。<br>同步的具体流程图如下所示：</li>
+</ul>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-ee96c8df264bc94a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="zk同步流程"></p>
+<h3 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h3><h4 id="Leader工作流程"><a href="#Leader工作流程" class="headerlink" title="Leader工作流程"></a>Leader工作流程</h4><ol>
+<li>恢复数据；</li>
+</ol>
+<ul>
+<li>维持与Learner的心跳，接收Learner请求并判断Learner的请求消息类型；</li>
+<li>Learner的消息类型主要有PING消息、REQUEST消息、ACK消息、REVALIDATE消息，根据不同的消息类型，进行不同的处理。<blockquote>
+<p>PING 消息是指Learner的心跳信息；<br>REQUEST消息是Follower发送的提议信息，包括写请求及同步请求；<br>ACK消息是Follower的对提议 的回复，超过半数的Follower通过，则commit该提议；<br>REVALIDATE消息是用来延长SESSION有效时间。</p>
+</blockquote>
+</li>
+</ul>
+<p>Leader的工作流程简图具体如下所示：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-1bc7025a0a7233a1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Leader工作流程"></p>
+<h4 id="Follower工作流程"><a href="#Follower工作流程" class="headerlink" title="Follower工作流程"></a>Follower工作流程</h4><p>Follower主要有四个功能：</p>
+<ol>
+<li>向Leader发送请求（PING消息、REQUEST消息、ACK消息、REVALIDATE消息）；</li>
+</ol>
+<ul>
+<li>接收Leader消息并进行处理；</li>
+<li>接收Client的请求，如果为写请求，发送给Leader进行投票；</li>
+<li>返回Client结果。<br>Follower的消息循环处理如下几种来自Leader的消息：</li>
+</ul>
+<ol>
+<li>PING消息： 心跳消息；</li>
+</ol>
+<ul>
+<li>PROPOSAL消息：Leader发起的提案，要求Follower投票；</li>
+<li>COMMIT消息：服务器端最新一次提案的信息；</li>
+<li>UPTODATE消息：表明同步完成；</li>
+<li>REVALIDATE消息：根据Leader的REVALIDATE结果，关闭待revalidate的session还是允许其接受消息；</li>
+<li>SYNC消息：返回SYNC结果到客户端，这个消息最初由客户端发起，用来强制得到最新的更新。<br>Follower的工作流程简图具体如下所示：</li>
+</ul>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-677c4e636230b735.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Follower的工作流程"></p>
+<h2 id="应用篇"><a href="#应用篇" class="headerlink" title="应用篇"></a>应用篇</h2><p>　　分布式系统的运行是很复杂的，因为涉及到了网络通信还有节点失效等不可控的情况。下面介绍在最传统的master-workers模型，主要可以会遇到什么问题，传统方法是怎么解决以及怎么用zookeeper解决。</p>
+<h3 id="Master节点管理"><a href="#Master节点管理" class="headerlink" title="Master节点管理"></a>Master节点管理</h3><p>　　集群当中最重要的是Master，所以一般都会设置一台Master的Backup。<br>Backup会定期向Master获取Meta信息并且检测Master的存活性，一旦Master挂了，Backup立马启动，接替Master的工作自己成为Master，分布式的情况多种多样，因为涉及到了网络通信的抖动，针对下面的情况:</p>
+<ol>
+<li>Backup检测Master存活性传统的就是定期发包，一旦一定时间段内没有收到响应就判定Master Down了，于是Backup就启动，如果Master其实是没有down，Backup收不到响应或者收到响应延迟的原因是因为网络阻塞的问题呢？Backup也启动了，这时候集群里就有了<strong>两个Master</strong>，很有可能部分workers汇报给Master，另一部分workers汇报给后来启动的Backup，这下子服务就全乱了。</li>
+</ol>
+<ul>
+<li>Backup是定期同步Master中的meta信息，所以总是滞后的，一旦Master挂了，Backup的信息必然是老的，很有可能会影响集群运行状态。<br><strong><em>解决问题:</em></strong><br><a href="">Master节点高可用，并且保证唯一。</a><br><a href="">Meta信息的及时同步。</a><br><strong> Zookeeper Master选举 </strong><br>　　Zookeeper会分配给注册到它上面的客户端一个编号，并且zk自己会保证这个编号的唯一性和递增性，N多机器中只需选出编号最小的Client作为Master就行，并且保证这些机器的都维护一个一样的meta信息视图，一旦Master挂了，那么这N机器中编号最小的胜任Master，Meta信息是一致的。</li>
+</ul>
+<h3 id="集群worker管理"><a href="#集群worker管理" class="headerlink" title="集群worker管理"></a>集群worker管理</h3><p>　　集群中的worker挂了是很可能的，一旦worker A挂了，如果存在其余的workers互相之间需要通信，那么workers必须尽快更新自己的hosts列表，把挂了的worker剔除，从而不在和它通信，而Master要做的是把挂了worker上的作业调度到其他的worker上。同样的，这台worker重新恢复正常了，要通知其他的workers更新hosts列表。传统的作法都是有专门的监控系统，通过不断去发心跳包(比如ping)来发现worker是否alive，缺陷就是及时性问题，不能应用于在线率要求较高的场景<br><strong><em>解决问题:</em></strong><br><a href="">集群worker监控。</a><br><strong> Zookeeper监控集群 </strong><br>　　利用zookeeper建立znode的强一致性，可以用于那种对集群中机器状态，机器在线率有较高要求的场景，能够快速对集群中机器变化作出响应。</p>
+<h3 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h3><p>　　在一台机器上要多个进程或者多个线程操作同一资源比较简单，因为可以有大量的状态信息或者日志信息提供保证，比如两个A和B进程同时写一个文件，加锁就可以实现。但是分布式系统怎么办？需要一个三方的分配锁的机制，几百台worker都对同一个网络中的文件写操作，怎么协同？还有怎么保证高效的运行？<br><strong><em>解决问题:</em></strong><br><a href="">高效分布式的分布式锁</a><br><strong>Zookeeper分布式锁</strong><br>　　分布式锁主要得益于ZooKeeper为我们保证了数据的强一致性，zookeeper的znode节点创建的唯一性和递增性能保证所有来抢锁的worker的原子性。</p>
+<h3 id="配置文件管理"><a href="#配置文件管理" class="headerlink" title="配置文件管理"></a>配置文件管理</h3><p>　　集群中配置文件的更新和同步是很频繁的，传统的配置文件分发都是需要把配置文件数据分发到每台worker上，然后进行worker的reload，这种方式是最笨的方式，结构很难维护，因为如果集群当中有可能很多种应用的配置文件要同步，而且效率很低，集群规模一大负载很高。还有一种就是每次更新把配置文件单独保存到一个数据库里面，然后worker端定期pull数据，这种方式就是数据及时性得不到同步。<br><strong><em>解决问题:</em></strong><br><a href="">统一配置文件分发并且及时让worker生效</a><br><strong>Zookeeper发布与订阅模型</strong><br>　　发布与订阅模型，即所谓的配置中心，顾名思义就是发布者将数据发布到ZK节点上，供订阅者动态获取数据，实现配置信息的集中式管理和动态更新。例如全局的配置信息，服务式服务框架的服务地址列表等就非常适合使用。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/分布式/">分布式</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://luohoufu.github.io/2016/07/19/zookeeper1/" data-title="Zookeeper介绍、原理及应用 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2016/07/19/zookeeper/"  title="在CentOS7上配置Zookeeper 3.4.8集群">
+ <strong>下一篇：</strong><br/> 
+ <span>在CentOS7上配置Zookeeper 3.4.8集群
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/19/zookeeper1/" data-title="Zookeeper介绍、原理及应用" data-url="http://luohoufu.github.io/2016/07/19/zookeeper1/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper简介"><span class="toc-number">1.</span> <span class="toc-text">Zookeeper简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper基本概念"><span class="toc-number">2.</span> <span class="toc-text">Zookeeper基本概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#zk角色"><span class="toc-number">2.1.</span> <span class="toc-text">zk角色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk-service网络结构"><span class="toc-number">2.2.</span> <span class="toc-text">zk service网络结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk命名空间结构"><span class="toc-number">2.3.</span> <span class="toc-text">zk命名空间结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk读写数据"><span class="toc-number">2.4.</span> <span class="toc-text">zk读写数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zk-znode类型"><span class="toc-number">2.5.</span> <span class="toc-text">zk znode类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper设计目的"><span class="toc-number">3.</span> <span class="toc-text">Zookeeper设计目的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper工作原理"><span class="toc-number">4.</span> <span class="toc-text">Zookeeper工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#选主流程"><span class="toc-number">4.1.</span> <span class="toc-text">选主流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#同步流程"><span class="toc-number">4.2.</span> <span class="toc-text">同步流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#工作流程"><span class="toc-number">4.3.</span> <span class="toc-text">工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Leader工作流程"><span class="toc-number">4.3.1.</span> <span class="toc-text">Leader工作流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Follower工作流程"><span class="toc-number">4.3.2.</span> <span class="toc-text">Follower工作流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#应用篇"><span class="toc-number">5.</span> <span class="toc-text">应用篇</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Master节点管理"><span class="toc-number">5.1.</span> <span class="toc-text">Master节点管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#集群worker管理"><span class="toc-number">5.2.</span> <span class="toc-text">集群worker管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分布式锁"><span class="toc-number">5.3.</span> <span class="toc-text">分布式锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置文件管理"><span class="toc-number">5.4.</span> <span class="toc-text">配置文件管理</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github 名片</p>
+<div class="github-card" data-github="luohoufu" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/github/" title="github">github<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/分布式/" title="分布式">分布式<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.infoq.com/cn/" target="_blank" title="一个精英文章汇集的站点">InfoQ</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/，常去看看" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.oschina.net/" target="_blank" title="关注国内开源">开源中国</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://segmentfault.com/" target="_blank" title="今天你又在开发中遇到了什么问题">SegmentFault</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 爱编程的小伙 <br/>
+			不想做程序猿的架构师不是好的产品经理</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/u/5666590322" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/luohoufu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/luohoufu" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		<a href="https://www.douban.com/people/142251737" target="_blank" class="icon-douban" title="豆瓣"></a>
+		
+		
+		
+		
+		<a href="mailto:luohoufu@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
+		
+		<a href="/about" target="_blank" title="Tonny Luo">Tonny Luo</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tonnyluo"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?dd09496f0b593221f4326d64011cab";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1259855911'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1259855911' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
