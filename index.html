@@ -94,7 +94,7 @@
 </header>
     <div class="article-content">
         
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　上次写的<a href="http://www.jianshu.com/p/6381395250eb" target="_blank" rel="external">我在Deepin Linux 上使用ssh问题集锦</a>日记中提到可以用config来方便管理ssh会话，现补充上来。</p>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　上次写的<a href="https://luohoufu.github.io/2016/07/21/deepin1/">我在Deepin Linux 上使用ssh问题集锦</a>日记中提到可以用config来方便管理ssh会话，现补充上来。</p>
 <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>　　通常利用 <a href="http://zh.wikipedia.org/wiki/Secure_Shell" target="_blank" rel="external">ssh</a> 连接远程服务器，一般都要输入以下类似命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh user@hostname -p port</span><br></pre></td></tr></table></figure></p>
 <p>　　如果拥有多个 ssh 账号，特别是像我这种喜欢在终端里直接 ssh 登陆，又不用 <a href="http://www.putty.org/" target="_blank" rel="external">PuTTY</a>、<a href="http://www.vandyke.com/products/securecrt/" target="_blank" rel="external">SecureCRT</a>之类的 ssh 客户端的，要记住每个ssh 账号的参数，比较浪费精力、时间。<br>　　还好 ssh 提供一种优雅且灵活的方式来解决这个问题，就是利用 ssh 的用户配置文件 config 管理 ssh 会话。ssh 的用户配置文件是放在当前用户根目录下的 .ssh 文件夹里（~/.ssh/config，不存在则新创建一个），其配置写法如下：</p>
 <blockquote>
@@ -235,7 +235,7 @@
 <li><strong>友情提示:</strong> PasswordAuthentication no配置内容，一定要在已经生成好了至少一个key并可从远程登录之后再使用，否则会导致直接无法登录。</li>
 </ul>
 <blockquote>
-<p>附录：<br> 　　经常登录远程服务器操作，可以根据自己的喜好进行快捷配置<br>例如采用<em>spawn</em>、<em>alias</em>、<em>oh-my-zsh支持的custom脚本</em>、<strong><a href="http://www.jianshu.com/p/6162b94110fc" target="_blank" rel="external">config配置</a></strong></p>
+<p>附录：<br> 　　经常登录远程服务器操作，可以根据自己的喜好进行快捷配置<br>例如采用<em>spawn</em>、<em>alias</em>、<em>oh-my-zsh支持的custom脚本</em>、<strong><a href="https://luohoufu.github.io/2016/07/21/deepin2/">config配置</a></strong></p>
 </blockquote>
 
         
