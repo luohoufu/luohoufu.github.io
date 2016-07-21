@@ -4,32 +4,29 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>我是如何在Deepin Linux系统上工作的 | 技术资料分享小站</title>
+    <title>利用 ssh 的用户配置文件 config 管理 ssh 会话 | 技术资料分享小站</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Tonny Luo">
     
 
     
-    <meta name="description" content="背景　　我是一名java工程师，一直以来都以Eclipse进行java开发。从2015年底开始在Linux上工作，期间安装过Ubuntu\Deepin\CentOS等系统，最终确定在Deepin下工作是被其界面吸引。　　最开始用的Deepin还是基于Ubuntu开发的，从15版本开始是基于Debian上定制开发。尝试请下载：下载地址 
-下面说说我常用的软件及配置：
-基础工具
-以下是我常用的一些工具">
+    <meta name="description" content="背景　　上次写的我在Deepin Linux 上使用ssh问题集锦日记中提到可以用config来方便管理ssh会话，现补充上来。
+介绍　　通常利用 ssh 连接远程服务器，一般都要输入以下类似命令：1ssh user@hostname -p port
+　　如果拥有多个 ssh 账号，特别是像我这种喜欢在终端里直接 ssh 登陆，又不用 PuTTY、SecureCRT之类的 ssh 客户端的，要记住">
 <meta property="og:type" content="article">
-<meta property="og:title" content="我是如何在Deepin Linux系统上工作的">
-<meta property="og:url" content="http://luohoufu.github.io/2016/07/15/deepin/index.html">
+<meta property="og:title" content="利用 ssh 的用户配置文件 config 管理 ssh 会话">
+<meta property="og:url" content="http://luohoufu.github.io/2016/07/21/deepin2/index.html">
 <meta property="og:site_name" content="技术资料分享小站">
-<meta property="og:description" content="背景　　我是一名java工程师，一直以来都以Eclipse进行java开发。从2015年底开始在Linux上工作，期间安装过Ubuntu\Deepin\CentOS等系统，最终确定在Deepin下工作是被其界面吸引。　　最开始用的Deepin还是基于Ubuntu开发的，从15版本开始是基于Debian上定制开发。尝试请下载：下载地址 
-下面说说我常用的软件及配置：
-基础工具
-以下是我常用的一些工具">
-<meta property="og:updated_time" content="2016-07-15T07:30:31.110Z">
+<meta property="og:description" content="背景　　上次写的我在Deepin Linux 上使用ssh问题集锦日记中提到可以用config来方便管理ssh会话，现补充上来。
+介绍　　通常利用 ssh 连接远程服务器，一般都要输入以下类似命令：1ssh user@hostname -p port
+　　如果拥有多个 ssh 账号，特别是像我这种喜欢在终端里直接 ssh 登陆，又不用 PuTTY、SecureCRT之类的 ssh 客户端的，要记住">
+<meta property="og:updated_time" content="2016-07-21T02:51:15.216Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="我是如何在Deepin Linux系统上工作的">
-<meta name="twitter:description" content="背景　　我是一名java工程师，一直以来都以Eclipse进行java开发。从2015年底开始在Linux上工作，期间安装过Ubuntu\Deepin\CentOS等系统，最终确定在Deepin下工作是被其界面吸引。　　最开始用的Deepin还是基于Ubuntu开发的，从15版本开始是基于Debian上定制开发。尝试请下载：下载地址 
-下面说说我常用的软件及配置：
-基础工具
-以下是我常用的一些工具">
+<meta name="twitter:title" content="利用 ssh 的用户配置文件 config 管理 ssh 会话">
+<meta name="twitter:description" content="背景　　上次写的我在Deepin Linux 上使用ssh问题集锦日记中提到可以用config来方便管理ssh会话，现补充上来。
+介绍　　通常利用 ssh 连接远程服务器，一般都要输入以下类似命令：1ssh user@hostname -p port
+　　如果拥有多个 ssh 账号，特别是像我这种喜欢在终端里直接 ssh 登陆，又不用 PuTTY、SecureCRT之类的 ssh 客户端的，要记住">
 
     
     <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
@@ -89,14 +86,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2016/07/15/deepin/" title="我是如何在Deepin Linux系统上工作的" itemprop="url">我是如何在Deepin Linux系统上工作的</a>
+      <a href="/2016/07/21/deepin2/" title="利用 ssh 的用户配置文件 config 管理 ssh 会话" itemprop="url">利用 ssh 的用户配置文件 config 管理 ssh 会话</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
 		
   <p class="article-time">
-    <time datetime="2016-07-15T07:29:25.000Z" itemprop="datePublished"> 发表于 2016-07-15</time>
+    <time datetime="2016-07-21T02:50:18.000Z" itemprop="datePublished"> 发表于 2016-07-21</time>
     
   </p>
 </header>
@@ -105,56 +102,46 @@
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基础工具"><span class="toc-number">1.1.</span> <span class="toc-text">基础工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#系统自带软件"><span class="toc-number">1.2.</span> <span class="toc-text">系统自带软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#常用工具软件"><span class="toc-number">1.3.</span> <span class="toc-text">常用工具软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#附加软件"><span class="toc-number">1.4.</span> <span class="toc-text">附加软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JAVA开发环境"><span class="toc-number">1.5.</span> <span class="toc-text">JAVA开发环境</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#IntelliJ-IDEA"><span class="toc-number">1.5.1.</span> <span class="toc-text">IntelliJ IDEA</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Dbeaver"><span class="toc-number">1.5.2.</span> <span class="toc-text">Dbeaver</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Sublime-Text-3"><span class="toc-number">1.6.</span> <span class="toc-text">Sublime Text 3</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Visual-Studio-Code"><span class="toc-number">1.7.</span> <span class="toc-text">Visual Studio Code</span></a></li></ol></li></ol>
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#介绍"><span class="toc-number">2.</span> <span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#配置"><span class="toc-number">3.</span> <span class="toc-text">配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#延伸阅读"><span class="toc-number">4.</span> <span class="toc-text">延伸阅读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#github-gitlab-bitbucket-管理多个ssh-key"><span class="toc-number">4.1.</span> <span class="toc-text">github/gitlab/bitbucket 管理多个ssh key</span></a></li></ol></li></ol>
 		
 		</div>
 		
-		<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　我是一名java工程师，一直以来都以Eclipse进行java开发。从2015年底开始在Linux上工作，期间安装过Ubuntu\Deepin\CentOS等系统，最终确定在Deepin下工作是被其界面吸引。<br>　　最开始用的Deepin还是基于Ubuntu开发的，从15版本开始是基于Debian上定制开发。尝试请下载：<a href="https://www.deepin.org/download.html" target="_blank" rel="external">下载地址</a> </p>
-<p>下面说说我常用的软件及配置：</p>
-<h3 id="基础工具"><a href="#基础工具" class="headerlink" title="基础工具"></a>基础工具</h3><ul>
-<li>以下是我常用的一些工具<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install git xclip htop guake tree tmux</span><br></pre></td></tr></table></figure>
+		<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　上次写的<a href="http://www.jianshu.com/p/6381395250eb" target="_blank" rel="external">我在Deepin Linux 上使用ssh问题集锦</a>日记中提到可以用config来方便管理ssh会话，现补充上来。</p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>　　通常利用 <a href="http://zh.wikipedia.org/wiki/Secure_Shell" target="_blank" rel="external">ssh</a> 连接远程服务器，一般都要输入以下类似命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh user@hostname -p port</span><br></pre></td></tr></table></figure></p>
+<p>　　如果拥有多个 ssh 账号，特别是像我这种喜欢在终端里直接 ssh 登陆，又不用 <a href="http://www.putty.org/" target="_blank" rel="external">PuTTY</a>、<a href="http://www.vandyke.com/products/securecrt/" target="_blank" rel="external">SecureCRT</a>之类的 ssh 客户端的，要记住每个ssh 账号的参数，比较浪费精力、时间。<br>　　还好 ssh 提供一种优雅且灵活的方式来解决这个问题，就是利用 ssh 的用户配置文件 config 管理 ssh 会话。ssh 的用户配置文件是放在当前用户根目录下的 .ssh 文件夹里（~/.ssh/config，不存在则新创建一个），其配置写法如下：</p>
+<blockquote>
+<p>Host    别名<br>    HostName        主机名<br>    Port            端口<br>    User            用户名<br>    IdentityFile    密钥文件的路径<br>    IdentitiesOnly 只接受SSH key 登录<br>    PreferredAuthentications 强制使用Public Key验证</p>
+<p><strong>提示：可以通过　man ssh_config，查看~/.ssh/config的语法。</strong></p>
+</blockquote>
+<hr>
+<p>进入相关的配置后，就可以这样用 ssh 登陆服务器了：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh 别名</span><br></pre></td></tr></table></figure></p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh  cp 115.29.240.144.pem ~/.ssh</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  vi ~/.ssh/config </span><br><span class="line"><span class="comment"># snails</span></span><br><span class="line">Host snails</span><br><span class="line">    HostName 115.29.240.144</span><br><span class="line">    Port 63210</span><br><span class="line">    IdentityFile ~/.ssh/115.29.240.144.pem</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh snails</span><br></pre></td></tr></table></figure>
+<h2 id="延伸阅读"><a href="#延伸阅读" class="headerlink" title="延伸阅读"></a>延伸阅读</h2><h3 id="github-gitlab-bitbucket-管理多个ssh-key"><a href="#github-gitlab-bitbucket-管理多个ssh-key" class="headerlink" title="github/gitlab/bitbucket 管理多个ssh key"></a>github/gitlab/bitbucket 管理多个ssh key</h3><p>　　以前只使用一个 ssh key 在github上提交代码，由于工作原因，需要再添加一个ssh key在公司的 gitlab上提交代码，下面记录下配置过程，防止遗忘。</p>
+<ol>
+<li>针对github及gitlab分别生成公钥和私钥<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh-keygen -t rsa -C <span class="string">"luohoufu@company.com"</span> <span class="_">-f</span> ~/.ssh/id_rsa.gitlab</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh-keygen -t rsa -C <span class="string">"luohoufu@163.com"</span> <span class="_">-f</span> ~/.ssh/id_rsa.github</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>添加私钥<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh ssh-add ~/.ssh/id_rsa.gitlab</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh ssh-add ~/.ssh/id_rsa.github</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh ssh-add <span class="_">-l</span></span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <blockquote>
-<p><em>git</em> 用来管理源代码的版本及分支<br>   <em>xclip</em> 用来操作剪贴板<br>   <em>htop</em> top加强管理工具<br>   <em>guake</em> 可以后台运行的终端，F12可在后台放音乐。<br>   <em>tree</em> 用来显示目录<br>  <em>tmux</em> 用来管理终端连接</p>
+<p><em>ssh-add命令参考：</em> <strong><a href="http://man.linuxde.net/ssh-add" target="_blank" rel="external">ssh-add</a></strong></p>
 </blockquote>
-<h3 id="系统自带软件"><a href="#系统自带软件" class="headerlink" title="系统自带软件"></a>系统自带软件</h3><ul>
-<li><strong>CrossOver</strong> 用于运行widows相关的软件，如QQ</li>
-<li><strong>WPS</strong> 用于文档、演示文稿、电子表格操作</li>
-<li><strong>深度商店</strong> 用于快速安装仓库自带软件</li>
-<li><strong>深度音乐/深度影院/深度截图</strong> 用于娱乐、截图</li>
-<li><strong>Gedit</strong> 用于文本编辑</li>
-<li><strong>深度终端</strong> 用于命令操作，可调整为zsh，并用oh-my-zsh加强</li>
-<li><strong>文件管理器</strong> 用于文件浏览、查看、删除</li>
-<li><strong>搜狐拼音/五笔拼音</strong>　用于输入法</li>
-<li><strong>Chrome浏览器</strong> 用于上网及网页开发调试<ul>
-<li>常用插件有：<br><a href=""><em>Axure RP Extension for Chrome</em></a> 用于查看产品原型<br><a href=""><em>JSONView</em></a> 用于查看格式化Json<br><a href=""><em>Momentum</em></a> 用于默认开tab页使用优美图片<br><a href="http://www.oschina.net/p/octotree" target="_blank" rel="external"><em>Octotree</em></a> 用于树状查看github代码<br><a href="http://www.oschina.net/p/switchyomega" target="_blank" rel="external"><em>SwitchyOmega</em></a> 用于代理设置<br><a href="http://www.oschina.net/p/postman" target="_blank" rel="external"><em>Postman</em></a> 用于API接口测试<br><a href=""><em>今天日期</em></a> 用于查看当前的时间</li>
-</ul>
+<ul>
+<li><p>修改配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh  vi ~/.ssh/config</span><br><span class="line"><span class="comment"># gitlab</span></span><br><span class="line">Host gitlab.com </span><br><span class="line">HostName gitlab.com </span><br><span class="line">PreferredAuthentications publickey </span><br><span class="line">IdentityFile ~/.ssh/id_rsa.gitlab</span><br><span class="line">　　</span><br><span class="line"><span class="comment"># github</span></span><br><span class="line">Host github.com </span><br><span class="line">HostName github.com </span><br><span class="line">PreferredAuthentications publickey </span><br><span class="line">IdentityFile ~/.ssh/id_rsa.github</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>github密钥配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh xclip -sel clip &lt; ~/.ssh/id_rsa.github.pub</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<h3 id="常用工具软件"><a href="#常用工具软件" class="headerlink" title="常用工具软件"></a>常用工具软件</h3><ul>
-<li>有道词典 翻译软件，用于专业词汇查找。</li>
-<li>为知笔记 记录软件，用于工作总结。</li>
-<li>VirtualBox 虚拟机软件，用于Windos虚拟、Android虚拟。</li>
-<li>Wireshark 抓包软件，用于协议分析、调试</li>
+<p>　　登录<a href="https://github.com/settings/profile" target="_blank" rel="external">github.com</a>，并点击左侧的<a href="https://github.com/settings/keys" target="_blank" rel="external">SSH and GPG keys</a>；然后点击“New SSH key” 并粘贴剪切板中的公钥；最后点击“Add SSH key”保存公钥。</p>
+<ul>
+<li>测试<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh ssh -T git@github.com</span><br><span class="line">Hi luohoufu! You<span class="string">'ve successfully authenticated, but GitHub does not provide shell access.</span><br><span class="line">#表示成功的连上github了，然后再在gitlab上进行同样的操作即可。</span></span><br></pre></td></tr></table></figure>
+</li>
 </ul>
-<h3 id="附加软件"><a href="#附加软件" class="headerlink" title="附加软件"></a>附加软件</h3><ul>
-<li>微信网页版</li>
-<li>钉钉</li>
-<li>Firefox</li>
-</ul>
-<h3 id="JAVA开发环境"><a href="#JAVA开发环境" class="headerlink" title="JAVA开发环境"></a>JAVA开发环境</h3><h4 id="IntelliJ-IDEA"><a href="#IntelliJ-IDEA" class="headerlink" title="IntelliJ IDEA"></a>IntelliJ IDEA</h4><pre><code>长期使用Eclipse后再用IDEA就很少用回Eclipse了，毕竟IDEA功能比Eclipse强大很多。
-</code></pre><ul>
-<li>集成了Maven环境，可以修改配置路径指向自己下载的maven。</li>
-<li>集成了Git环境，方便进行分支切换、代码提交。</li>
-<li>调试功能强大，用Visual Studio的同学都会佩服其调试功能，IDEA也是如此。</li>
-<li>更高的开发效率，默认深色主题，重构、跳转定义、删除/复制行方便。</li>
-<li>集成命令行终端，相当多的快捷键，并可配合终端操作。</li>
-</ul>
-<h4 id="Dbeaver"><a href="#Dbeaver" class="headerlink" title="Dbeaver"></a>Dbeaver</h4><pre><code>用于数据库操作
-</code></pre><h3 id="Sublime-Text-3"><a href="#Sublime-Text-3" class="headerlink" title="Sublime Text 3"></a>Sublime Text 3</h3><pre><code>用于代码查看及编译
-</code></pre><h3 id="Visual-Studio-Code"><a href="#Visual-Studio-Code" class="headerlink" title="Visual Studio Code"></a>Visual Studio Code</h3><pre><code>用于golang开发
-</code></pre>  
+  
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
@@ -171,7 +158,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://luohoufu.github.io/2016/07/15/deepin/" data-title="我是如何在Deepin Linux系统上工作的 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  <div data-url="http://luohoufu.github.io/2016/07/21/deepin2/" data-title="利用 ssh 的用户配置文件 config 管理 ssh 会话 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -184,19 +171,11 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2016/07/18/mysql/" title="在CentOS上编译安装MySQL 5.7.13步骤详解">
-  <strong>上一篇：</strong><br/>
-  <span>
-  在CentOS上编译安装MySQL 5.7.13步骤详解</span>
-</a>
-</div>
-
 
 <div class="next">
-<a href="/2016/07/14/tomcat/"  title="在CentOS7上用systemctl配置tomcat 8">
+<a href="/2016/07/21/deepin1/"  title="我在Deepin Linux 上使用ssh问题集锦">
  <strong>下一篇：</strong><br/> 
- <span>在CentOS7上用systemctl配置tomcat 8
+ <span>我在Deepin Linux 上使用ssh问题集锦
 </span>
 </a>
 </div>
@@ -205,7 +184,7 @@
 
 	
 <section id="comments" class="comment">
-	<div class="ds-thread" data-thread-key="2016/07/15/deepin/" data-title="我是如何在Deepin Linux系统上工作的" data-url="http://luohoufu.github.io/2016/07/15/deepin/"></div>
+	<div class="ds-thread" data-thread-key="2016/07/21/deepin2/" data-title="利用 ssh 的用户配置文件 config 管理 ssh 会话" data-url="http://luohoufu.github.io/2016/07/21/deepin2/"></div>
 </section>
 
 
@@ -215,7 +194,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
  
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基础工具"><span class="toc-number">1.1.</span> <span class="toc-text">基础工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#系统自带软件"><span class="toc-number">1.2.</span> <span class="toc-text">系统自带软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#常用工具软件"><span class="toc-number">1.3.</span> <span class="toc-text">常用工具软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#附加软件"><span class="toc-number">1.4.</span> <span class="toc-text">附加软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JAVA开发环境"><span class="toc-number">1.5.</span> <span class="toc-text">JAVA开发环境</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#IntelliJ-IDEA"><span class="toc-number">1.5.1.</span> <span class="toc-text">IntelliJ IDEA</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Dbeaver"><span class="toc-number">1.5.2.</span> <span class="toc-text">Dbeaver</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Sublime-Text-3"><span class="toc-number">1.6.</span> <span class="toc-text">Sublime Text 3</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Visual-Studio-Code"><span class="toc-number">1.7.</span> <span class="toc-text">Visual Studio Code</span></a></li></ol></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#介绍"><span class="toc-number">2.</span> <span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#配置"><span class="toc-number">3.</span> <span class="toc-text">配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#延伸阅读"><span class="toc-number">4.</span> <span class="toc-text">延伸阅读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#github-gitlab-bitbucket-管理多个ssh-key"><span class="toc-number">4.1.</span> <span class="toc-text">github/gitlab/bitbucket 管理多个ssh key</span></a></li></ol></li></ol>
  
   </div>
 

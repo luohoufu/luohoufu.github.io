@@ -81,6 +81,206 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/07/21/deepin2/" title="利用 ssh 的用户配置文件 config 管理 ssh 会话" itemprop="url">利用 ssh 的用户配置文件 config 管理 ssh 会话</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-21T02:50:18.000Z" itemprop="datePublished"> 发表于 2016-07-21</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　上次写的<a href="http://www.jianshu.com/p/6381395250eb" target="_blank" rel="external">我在Deepin Linux 上使用ssh问题集锦</a>日记中提到可以用config来方便管理ssh会话，现补充上来。</p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>　　通常利用 <a href="http://zh.wikipedia.org/wiki/Secure_Shell" target="_blank" rel="external">ssh</a> 连接远程服务器，一般都要输入以下类似命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh user@hostname -p port</span><br></pre></td></tr></table></figure></p>
+<p>　　如果拥有多个 ssh 账号，特别是像我这种喜欢在终端里直接 ssh 登陆，又不用 <a href="http://www.putty.org/" target="_blank" rel="external">PuTTY</a>、<a href="http://www.vandyke.com/products/securecrt/" target="_blank" rel="external">SecureCRT</a>之类的 ssh 客户端的，要记住每个ssh 账号的参数，比较浪费精力、时间。<br>　　还好 ssh 提供一种优雅且灵活的方式来解决这个问题，就是利用 ssh 的用户配置文件 config 管理 ssh 会话。ssh 的用户配置文件是放在当前用户根目录下的 .ssh 文件夹里（~/.ssh/config，不存在则新创建一个），其配置写法如下：</p>
+<blockquote>
+<p>Host    别名<br>    HostName        主机名<br>    Port            端口<br>    User            用户名<br>    IdentityFile    密钥文件的路径<br>    IdentitiesOnly 只接受SSH key 登录<br>    PreferredAuthentications 强制使用Public Key验证</p>
+<p><strong>提示：可以通过　man ssh_config，查看~/.ssh/config的语法。</strong></p>
+</blockquote>
+<hr>
+<p>进入相关的配置后，就可以这样用 ssh 登陆服务器了：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh 别名</span><br></pre></td></tr></table></figure></p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh  cp 115.29.240.144.pem ~/.ssh</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  vi ~/.ssh/config </span><br><span class="line"><span class="comment"># snails</span></span><br><span class="line">Host snails</span><br><span class="line">    HostName 115.29.240.144</span><br><span class="line">    Port 63210</span><br><span class="line">    IdentityFile ~/.ssh/115.29.240.144.pem</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh snails</span><br></pre></td></tr></table></figure>
+<h2 id="延伸阅读"><a href="#延伸阅读" class="headerlink" title="延伸阅读"></a>延伸阅读</h2><h3 id="github-gitlab-bitbucket-管理多个ssh-key"><a href="#github-gitlab-bitbucket-管理多个ssh-key" class="headerlink" title="github/gitlab/bitbucket 管理多个ssh key"></a>github/gitlab/bitbucket 管理多个ssh key</h3><p>　　以前只使用一个 ssh key 在github上提交代码，由于工作原因，需要再添加一个ssh key在公司的 gitlab上提交代码，下面记录下配置过程，防止遗忘。</p>
+<ol>
+<li>针对github及gitlab分别生成公钥和私钥<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh-keygen -t rsa -C <span class="string">"luohoufu@company.com"</span> <span class="_">-f</span> ~/.ssh/id_rsa.gitlab</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh-keygen -t rsa -C <span class="string">"luohoufu@163.com"</span> <span class="_">-f</span> ~/.ssh/id_rsa.github</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>添加私钥<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh ssh-add ~/.ssh/id_rsa.gitlab</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh ssh-add ~/.ssh/id_rsa.github</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh ssh-add <span class="_">-l</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<blockquote>
+<p><em>ssh-add命令参考：</em> <strong><a href="http://man.linuxde.net/ssh-add" target="_blank" rel="external">ssh-add</a></strong></p>
+</blockquote>
+<ul>
+<li><p>修改配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh  vi ~/.ssh/config</span><br><span class="line"><span class="comment"># gitlab</span></span><br><span class="line">Host gitlab.com </span><br><span class="line">HostName gitlab.com </span><br><span class="line">PreferredAuthentications publickey </span><br><span class="line">IdentityFile ~/.ssh/id_rsa.gitlab</span><br><span class="line">　　</span><br><span class="line"><span class="comment"># github</span></span><br><span class="line">Host github.com </span><br><span class="line">HostName github.com </span><br><span class="line">PreferredAuthentications publickey </span><br><span class="line">IdentityFile ~/.ssh/id_rsa.github</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>github密钥配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh xclip -sel clip &lt; ~/.ssh/id_rsa.github.pub</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>　　登录<a href="https://github.com/settings/profile" target="_blank" rel="external">github.com</a>，并点击左侧的<a href="https://github.com/settings/keys" target="_blank" rel="external">SSH and GPG keys</a>；然后点击“New SSH key” 并粘贴剪切板中的公钥；最后点击“Add SSH key”保存公钥。</p>
+<ul>
+<li>测试<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~/ssh ssh -T git@github.com</span><br><span class="line">Hi luohoufu! You<span class="string">'ve successfully authenticated, but GitHub does not provide shell access.</span><br><span class="line">#表示成功的连上github了，然后再在gitlab上进行同样的操作即可。</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/操作系统/">操作系统</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/21/deepin2/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/21/deepin2/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/21/deepin1/" title="我在Deepin Linux 上使用ssh问题集锦" itemprop="url">我在Deepin Linux 上使用ssh问题集锦</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-21T02:48:59.000Z" itemprop="datePublished"> 发表于 2016-07-21</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>　　近期在Deepin Linux上使用ssh远程连接其他Linux服务器时，发现有些问题并逐步解决了；特记录下来供大家参考。</p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>个人电脑 Deepin Linux 15.2</li>
+<li>远程服务器 CentOS 7</li>
+</ul>
+<h3 id="SSH连接慢"><a href="#SSH连接慢" class="headerlink" title="SSH连接慢"></a>SSH连接慢</h3><p>  在用ssh连接远程服务器时，发现要等待一定时间。排查过程如下：</p>
+<ol>
+<li>将ssh连接过程信息输出<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~  ssh -v root@115.29.240.144</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<blockquote>
+<p>然后就会输出一大堆debug，通过debug信息就可以看到连接到什么地方被耽搁了比如会显示如下信息：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">debug1: Next authentication method: gssapi-with-mic</span><br><span class="line">debug1: Unspecified GSS failure. Minor code may provide more informationNo credentials cache found</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<ul>
+<li>检测连接时间<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~ time ssh root@115.29.240.144 <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h4 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h4><ol>
+<li>修改服务器端配置(<em>修改参数值或去掉注释</em>)<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># vi /etc/ssh/sshd_config</span></span><br><span class="line">UseDNS=no  <span class="comment">#关闭DNS反向解析</span></span><br><span class="line">GSSAPIAuthentication no <span class="comment">#关闭SERVER上的GSS认证</span></span><br><span class="line">IgnoreRhosts yes <span class="comment">#打开SERVER上的IgnoreRhosts参数</span></span><br><span class="line">[root@snails ~]<span class="comment"># systemctl restart sshd</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>修改本机配置(<u>考虑到没必要去每台服务器上修改</u>)<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~  sudo vi /etc/ssh/ssh_config</span><br><span class="line">GSSAPIAuthentication no <span class="comment">#关闭SERVER上的GSS认证</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="超时自动断开连接"><a href="#超时自动断开连接" class="headerlink" title="超时自动断开连接"></a>超时自动断开连接</h2><p>　　在离开办公桌一段时间后，发现原来的ssh连接已被断开。提示信息如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">packet_write_<span class="built_in">wait</span>: Connection to 115.29.240.144 port 22: Broken pipe</span><br></pre></td></tr></table></figure></p>
+<h3 id="解决办法-1"><a href="#解决办法-1" class="headerlink" title="解决办法"></a>解决办法</h3><ol>
+<li>修改服务器端配置(<em>修改参数值或去掉注释</em>)<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># echo "ClientAliveInterval 60"&gt;&gt;/etc/ssh/sshd_config</span></span><br><span class="line">[root@snails ~]<span class="comment"># systemctl restart sshd</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>　　重启OPENSSH服务器后该项设置会生效。每一个连接到此服务器上的客户端都会受其影响。应注意启用该功能后，安全性会有一定下降（比如忘记登出时……）,所以 建议用客户端设置。<br>如果您只想让当前的 ssh 保持连接，可以使用以下的命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~  ssh -o ServerAliveInterval=60 user@sshserver</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>修改本机配置<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># echo "ServerAliveInterval 60"&gt;&gt;/etc/ssh/ssh_config</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="采用spawn自动登录服务器-示例"><a href="#采用spawn自动登录服务器-示例" class="headerlink" title="采用spawn自动登录服务器(示例)"></a>采用spawn自动登录服务器(示例)</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">➜ tonny@tonny-pc  ~ vi ssh_115.29.240.144</span><br><span class="line"><span class="comment">#!/usr/bin/expect -f</span></span><br><span class="line"><span class="built_in">set</span> timeout -1</span><br><span class="line"><span class="built_in">set</span> passwd <span class="string">"THIS@IS@PASS"</span></span><br><span class="line">spawn ssh -p22 root@115.29.240.144</span><br><span class="line">expect &#123;</span><br><span class="line"><span class="string">"yes/no"</span> &#123; send <span class="string">"yes\r"</span>;exp_<span class="built_in">continue</span> &#125;</span><br><span class="line"><span class="string">"password:"</span> &#123; send <span class="string">"<span class="variable">$passwd</span>\r"</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line">interact</span><br><span class="line">➜ tonny@tonny-pc  ~  chmod +x ssh_115.29.240.144</span><br></pre></td></tr></table></figure>
+<h2 id="补充说明"><a href="#补充说明" class="headerlink" title="补充说明"></a>补充说明</h2><p>　　服务器安全是个永恒的话题，并且安全一直都是相对的。长期检查服务器登录日志、记录登录用户操作等等都是运维人员必须要做的日常事务。当然一开始就加强安全设置会更好。下面的内容主要介绍　<a href="">如何配置<em>ssh</em>使用密钥<em>登录</em>,<em>禁止</em>口令<em>登录</em></a></p>
+<h3 id="创建用户并赋予root权限"><a href="#创建用户并赋予root权限" class="headerlink" title="创建用户并赋予root权限"></a>创建用户并赋予root权限</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># adduser tonny</span></span><br><span class="line">[root@snails ~]<span class="comment"># passwd tonny</span></span><br><span class="line">[root@snails ~]<span class="comment"># ll /home/</span></span><br><span class="line">drwx------ 2 tonny        tonny        4096 7月  20 16:09 tonny</span><br><span class="line">[root@snails ~]<span class="comment"># id tonny</span></span><br><span class="line">uid=1002(tonny) gid=1002(tonny) 组=1002(tonny)</span><br><span class="line">[root@snails ~]<span class="comment"># visudo</span></span><br><span class="line"><span class="comment">## Allow root to run any commands anywhere</span></span><br><span class="line">root ALL=(ALL) ALL</span><br><span class="line">tonny ALL=(ALL) ALL</span><br></pre></td></tr></table></figure>
+<h3 id="编辑sshd配置文件，修改一些默认选项"><a href="#编辑sshd配置文件，修改一些默认选项" class="headerlink" title="编辑sshd配置文件，修改一些默认选项"></a>编辑sshd配置文件，修改一些默认选项</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># vi /etc/ssh/sshd_config</span></span><br><span class="line"><span class="comment">#使用不常用端口</span></span><br><span class="line">Port 63210</span><br><span class="line"><span class="comment">#仅使用SSH2协议</span></span><br><span class="line">Protocol 2</span><br><span class="line"><span class="comment">#修改密钥生成强度</span></span><br><span class="line">ServerKeyBits 1024</span><br><span class="line"><span class="comment">#禁止root账户通过ssh登录</span></span><br><span class="line">PermitRootLogin no</span><br><span class="line"><span class="comment">#禁止使用常规的用户名密码方式登录，此项慎用#在没有生成好Key，并且成功使用之前，要设置为yes</span></span><br><span class="line">PasswordAuthentication no</span><br><span class="line"><span class="comment">#禁止空密码登录</span></span><br><span class="line">PermitEmptyPasswords no</span><br></pre></td></tr></table></figure>
+<h3 id="生成个人的公钥与私钥"><a href="#生成个人的公钥与私钥" class="headerlink" title="生成个人的公钥与私钥"></a>生成个人的公钥与私钥</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># su - tonny</span></span><br><span class="line">[root@snails ~]$ ssh-keygen -t rsa -P <span class="string">''</span> -C <span class="string">"tonny"</span></span><br><span class="line"><span class="comment">#改名为sshd支持的默认公钥文件名</span></span><br><span class="line">[tonny@snails ~]$ mv ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys</span><br><span class="line"><span class="comment">#设置公钥文件名，如不设置为400，会无法登录</span></span><br><span class="line">[tonny@snails ~]$ chmod 400 ~/.ssh/authorized_keys</span><br><span class="line"><span class="comment">#取出私钥文件(通过sftp下载)</span></span><br><span class="line">[tonny@snails ~]$ rm -rf ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+<h3 id="利用私钥文件登录"><a href="#利用私钥文件登录" class="headerlink" title="利用私钥文件登录"></a>利用私钥文件登录</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#自己的电脑，删除原有的公钥信息</span></span><br><span class="line">➜ tonny@tonny-pc  ~ ssh-keygen -R 115.29.240.144</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  mv id_rsa 115.29.240.144.pem </span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh  -p 63210 tonny@115.29.240.144 -i 115.29.240.144.pem</span><br></pre></td></tr></table></figure>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#服务器</span></span><br><span class="line">[root@snails ~]<span class="comment"># systemctl restart sshd</span></span><br><span class="line"><span class="comment">#自己的电脑</span></span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh -p 63210 tonny@115.29.240.144                      </span><br><span class="line">Permission denied (publickey,gssapi-keyex,gssapi-with-mic).</span><br><span class="line">➜ tonny@tonny-pc  ~/ssh  ssh  -p 63210 root@115.29.240.144 -i 115.29.240.144.pem</span><br><span class="line">Permission denied (publickey,gssapi-keyex,gssapi-with-mic).</span><br></pre></td></tr></table></figure>
+<ol>
+<li>为什么说是安全的SSH链接呢？关闭了空密码链接、禁止常规的ssh用户名密码方式登录，只有在服务器上生成过key文件的用户方可访问，key文件+密钥，保护更完善一些。</li>
+</ol>
+<ul>
+<li><strong>友情提示:</strong> PasswordAuthentication no配置内容，一定要在已经生成好了至少一个key并可从远程登录之后再使用，否则会导致直接无法登录。</li>
+</ul>
+<blockquote>
+<p>附录：<br> 　　经常登录远程服务器操作，可以根据自己的喜好进行快捷配置<br>例如采用<em>spawn</em>、<em>alias</em>、<em>oh-my-zsh支持的custom脚本</em>、<strong><a href="http://www.jianshu.com/p/6162b94110fc" target="_blank" rel="external">config配置</a></strong></p>
+</blockquote>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/操作系统/">操作系统</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/21/deepin1/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/21/deepin1/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/07/19/zookeeper1/" title="Zookeeper介绍、原理及应用" itemprop="url">Zookeeper介绍、原理及应用</a>
   </h1>
   <p class="article-author">By
@@ -961,149 +1161,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/07/07/redis/" title="在centos 7下源码编译redis 3.2.1" itemprop="url">在centos 7下源码编译redis 3.2.1</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
-		
-  <p class="article-time">
-    <time datetime="2016-07-07T11:30:49.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>由于redis测试依赖tcl，在源码编译前先安装tcl<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># yum -y install tcl</span></span><br></pre></td></tr></table></figure></p>
-<h2 id="下载redis源码"><a href="#下载redis源码" class="headerlink" title="下载redis源码"></a>下载redis源码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># git clone https://github.com/antirez/redis.git</span></span><br></pre></td></tr></table></figure>
-<h2 id="编译、测试、安装"><a href="#编译、测试、安装" class="headerlink" title="编译、测试、安装"></a>编译、测试、安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#  cd redis</span></span><br><span class="line">[root@snails redis]<span class="comment">#  make</span></span><br><span class="line">[root@snails redis]<span class="comment">#  make test</span></span><br><span class="line">[root@snails redis]<span class="comment">#  make install</span></span><br><span class="line">``` </span><br><span class="line">* 查看安装结果</span><br><span class="line">``` bash</span><br><span class="line">[root@snails redis]<span class="comment">#  ll /usr/local/bin/redis-*</span></span><br></pre></td></tr></table></figure>
-<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><ul>
-<li>由于使用的是最新的redis 3.2.1版本，不存在<a href="https://help.aliyun.com/knowledge_detail/5988808.html" target="_blank" rel="external">安全漏洞</a>，默认bind 127.0.0.1</li>
-<li>复制配置文件，并修改为后台运行 daemonize yes<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails redis]<span class="comment">#  cp redis.conf /etc/redis_6379.conf</span></span><br><span class="line">[root@snails redis]<span class="comment"># vi /etc/redis_6379.conf</span></span><br><span class="line">daemonize yes</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="启动redis"><a href="#启动redis" class="headerlink" title="启动redis"></a>启动redis</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-server /etc/redis_6379.conf</span><br></pre></td></tr></table></figure>
-<h2 id="客户端测试（本机）"><a href="#客户端测试（本机）" class="headerlink" title="客户端测试（本机）"></a>客户端测试（本机）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails redis]<span class="comment"># redis-cli </span></span><br><span class="line">127.0.0.1:6379&gt; ping</span><br><span class="line">PONG</span><br><span class="line">127.0.0.1:6379&gt;</span><br></pre></td></tr></table></figure>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/redis/">redis</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/07/07/redis/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/07/redis/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/07/07/golang/" title="在centos 7下源码编译golang 1.7" itemprop="url">在centos 7下源码编译golang 1.7</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
-		
-  <p class="article-time">
-    <time datetime="2016-07-07T10:57:23.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
-<li>一个“干净”的系统是必须的，本次操作在阿里云上完成。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#hostnamectl set-hostname  snails</span></span><br><span class="line">[root@snails ~]<span class="comment"># hostnamectl</span></span><br><span class="line">Static hostname: snails</span><br><span class="line">Icon name: computer-vm</span><br><span class="line">Chassis: vm</span><br><span class="line">Machine ID: 7d26c16f116042a684ea498c9e2c240f</span><br><span class="line">Boot ID: e567275688e84ce3b72a11794dc8ac9b</span><br><span class="line">Virtualization: xen</span><br><span class="line">Operating System: CentOS Linux 7 (Core)</span><br><span class="line">CPE OS Name: cpe:/o:centos:centos:7</span><br><span class="line">Kernel: Linux 3.10.0-327.el7.x86_64</span><br><span class="line">Architecture: x86-64</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h2><h3 id="配置yum源"><a href="#配置yum源" class="headerlink" title="配置yum源"></a>配置yum源</h3><p><a href="http://mirrors.aliyun.com/help/centos" target="_blank" rel="external">CentOS 7配置</a><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure></p>
-<h4 id="安装git、gcc、vim"><a href="#安装git、gcc、vim" class="headerlink" title="安装git、gcc、vim"></a>安装git、gcc、vim</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">yum -y install git gcc vim</span><br><span class="line">[root@snails ~]<span class="comment"># git --version</span></span><br><span class="line">git version 1.8.3.1</span><br><span class="line">[root@snails src]<span class="comment"># gcc --version</span></span><br><span class="line">gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-4)</span><br><span class="line">Copyright © 2015 Free Software Foundation, Inc.</span><br><span class="line">本程序是自由软件；请参看源代码的版权声明。本软件没有任何担保；</span><br><span class="line">包括没有适销性和某一专用目的下的适用性担保。</span><br></pre></td></tr></table></figure>
-<h4 id="下载go-1-4分支"><a href="#下载go-1-4分支" class="headerlink" title="下载go 1.4分支"></a>下载go 1.4分支</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#git clone -b release-branch.go1.4  https://github.com/golang/go.git go</span></span><br></pre></td></tr></table></figure>
-<h3 id="编译并配置环境变量"><a href="#编译并配置环境变量" class="headerlink" title="编译并配置环境变量"></a>编译并配置环境变量</h3><ul>
-<li><p>编译</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#cd go/src</span></span><br><span class="line">[root@snails ~]<span class="comment">#./all.bash</span></span><br><span class="line">ALL TESTS PASSED</span><br><span class="line">Installed Go <span class="keyword">for</span> linux/amd64 <span class="keyword">in</span> /root/go</span><br><span class="line">Installed commands <span class="keyword">in</span> /root/go/bin</span><br><span class="line">*** You need to add /root/go/bin to your PATH.</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>配置环境变量</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#cd ~ &amp;&amp; mkdir -p golang/&#123;src,pkg,bin&#125;</span></span><br><span class="line">[root@snails ~]<span class="comment">#vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> GOPATH=<span class="variable">$HOME</span>/golang</span><br><span class="line"><span class="built_in">export</span> GOROOT=<span class="variable">$HOME</span>/go</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$GOROOT</span>/bin</span><br><span class="line">[root@snails ~]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails ~]<span class="comment"># go version</span></span><br><span class="line">go version go1.4.3 linux/amd64</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h3 id="更新go版本再次编译"><a href="#更新go版本再次编译" class="headerlink" title="更新go版本再次编译"></a>更新go版本再次编译</h3><ul>
-<li>更新go版本<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># mv go go-bootstrap</span></span><br><span class="line">[root@snails ~]<span class="comment"># git clone https://github.com/golang/go.git</span></span><br><span class="line">[root@snails ~]<span class="comment"># cd go</span></span><br><span class="line">``` </span><br><span class="line">* 再次编译</span><br><span class="line">``` bash</span><br><span class="line">[root@snails go]<span class="comment"># vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> GOROOT_BOOTSTRAP=<span class="variable">$HOME</span>/go-bootstrap</span><br><span class="line">[root@snails go]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails go]<span class="comment"># cd src/</span></span><br><span class="line">[root@snails src]<span class="comment"># ./clean.bash</span></span><br><span class="line">[root@snails src]<span class="comment"># ./all.bash</span></span><br><span class="line">``` </span><br><span class="line"><span class="comment">## 实践验证</span></span><br><span class="line">``` bash</span><br><span class="line">[root@snails src]<span class="comment"># go version</span></span><br><span class="line">go version devel +d872201 Thu Jul 7 04:06:52 2016 +0000 linux/amd64</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/golang/">golang</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/07/07/golang/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/07/golang/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
@@ -1134,6 +1191,10 @@
 		<ul class="clearfix">
 		
 			
+				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>3</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/github/" title="github">github<sup>3</sup></a></li>
 			
 		
@@ -1146,15 +1207,7 @@
 			
 		
 			
-				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>1</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
 			
 		
 			
@@ -1163,6 +1216,10 @@
 		
 			
 				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
 			
 		
 			

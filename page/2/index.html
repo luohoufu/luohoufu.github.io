@@ -81,6 +81,149 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/07/07/redis/" title="在centos 7下源码编译redis 3.2.1" itemprop="url">在centos 7下源码编译redis 3.2.1</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-07T11:30:49.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>由于redis测试依赖tcl，在源码编译前先安装tcl<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># yum -y install tcl</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="下载redis源码"><a href="#下载redis源码" class="headerlink" title="下载redis源码"></a>下载redis源码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># git clone https://github.com/antirez/redis.git</span></span><br></pre></td></tr></table></figure>
+<h2 id="编译、测试、安装"><a href="#编译、测试、安装" class="headerlink" title="编译、测试、安装"></a>编译、测试、安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#  cd redis</span></span><br><span class="line">[root@snails redis]<span class="comment">#  make</span></span><br><span class="line">[root@snails redis]<span class="comment">#  make test</span></span><br><span class="line">[root@snails redis]<span class="comment">#  make install</span></span><br><span class="line">``` </span><br><span class="line">* 查看安装结果</span><br><span class="line">``` bash</span><br><span class="line">[root@snails redis]<span class="comment">#  ll /usr/local/bin/redis-*</span></span><br></pre></td></tr></table></figure>
+<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><ul>
+<li>由于使用的是最新的redis 3.2.1版本，不存在<a href="https://help.aliyun.com/knowledge_detail/5988808.html" target="_blank" rel="external">安全漏洞</a>，默认bind 127.0.0.1</li>
+<li>复制配置文件，并修改为后台运行 daemonize yes<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails redis]<span class="comment">#  cp redis.conf /etc/redis_6379.conf</span></span><br><span class="line">[root@snails redis]<span class="comment"># vi /etc/redis_6379.conf</span></span><br><span class="line">daemonize yes</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="启动redis"><a href="#启动redis" class="headerlink" title="启动redis"></a>启动redis</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-server /etc/redis_6379.conf</span><br></pre></td></tr></table></figure>
+<h2 id="客户端测试（本机）"><a href="#客户端测试（本机）" class="headerlink" title="客户端测试（本机）"></a>客户端测试（本机）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails redis]<span class="comment"># redis-cli </span></span><br><span class="line">127.0.0.1:6379&gt; ping</span><br><span class="line">PONG</span><br><span class="line">127.0.0.1:6379&gt;</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/redis/">redis</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/07/redis/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/07/redis/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/07/golang/" title="在centos 7下源码编译golang 1.7" itemprop="url">在centos 7下源码编译golang 1.7</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-07T10:57:23.000Z" itemprop="datePublished"> 发表于 2016-07-07</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
+<li>一个“干净”的系统是必须的，本次操作在阿里云上完成。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#hostnamectl set-hostname  snails</span></span><br><span class="line">[root@snails ~]<span class="comment"># hostnamectl</span></span><br><span class="line">Static hostname: snails</span><br><span class="line">Icon name: computer-vm</span><br><span class="line">Chassis: vm</span><br><span class="line">Machine ID: 7d26c16f116042a684ea498c9e2c240f</span><br><span class="line">Boot ID: e567275688e84ce3b72a11794dc8ac9b</span><br><span class="line">Virtualization: xen</span><br><span class="line">Operating System: CentOS Linux 7 (Core)</span><br><span class="line">CPE OS Name: cpe:/o:centos:centos:7</span><br><span class="line">Kernel: Linux 3.10.0-327.el7.x86_64</span><br><span class="line">Architecture: x86-64</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h2><h3 id="配置yum源"><a href="#配置yum源" class="headerlink" title="配置yum源"></a>配置yum源</h3><p><a href="http://mirrors.aliyun.com/help/centos" target="_blank" rel="external">CentOS 7配置</a><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure></p>
+<h4 id="安装git、gcc、vim"><a href="#安装git、gcc、vim" class="headerlink" title="安装git、gcc、vim"></a>安装git、gcc、vim</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">yum -y install git gcc vim</span><br><span class="line">[root@snails ~]<span class="comment"># git --version</span></span><br><span class="line">git version 1.8.3.1</span><br><span class="line">[root@snails src]<span class="comment"># gcc --version</span></span><br><span class="line">gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-4)</span><br><span class="line">Copyright © 2015 Free Software Foundation, Inc.</span><br><span class="line">本程序是自由软件；请参看源代码的版权声明。本软件没有任何担保；</span><br><span class="line">包括没有适销性和某一专用目的下的适用性担保。</span><br></pre></td></tr></table></figure>
+<h4 id="下载go-1-4分支"><a href="#下载go-1-4分支" class="headerlink" title="下载go 1.4分支"></a>下载go 1.4分支</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#git clone -b release-branch.go1.4  https://github.com/golang/go.git go</span></span><br></pre></td></tr></table></figure>
+<h3 id="编译并配置环境变量"><a href="#编译并配置环境变量" class="headerlink" title="编译并配置环境变量"></a>编译并配置环境变量</h3><ul>
+<li><p>编译</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#cd go/src</span></span><br><span class="line">[root@snails ~]<span class="comment">#./all.bash</span></span><br><span class="line">ALL TESTS PASSED</span><br><span class="line">Installed Go <span class="keyword">for</span> linux/amd64 <span class="keyword">in</span> /root/go</span><br><span class="line">Installed commands <span class="keyword">in</span> /root/go/bin</span><br><span class="line">*** You need to add /root/go/bin to your PATH.</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment">#cd ~ &amp;&amp; mkdir -p golang/&#123;src,pkg,bin&#125;</span></span><br><span class="line">[root@snails ~]<span class="comment">#vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> GOPATH=<span class="variable">$HOME</span>/golang</span><br><span class="line"><span class="built_in">export</span> GOROOT=<span class="variable">$HOME</span>/go</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$GOROOT</span>/bin</span><br><span class="line">[root@snails ~]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails ~]<span class="comment"># go version</span></span><br><span class="line">go version go1.4.3 linux/amd64</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="更新go版本再次编译"><a href="#更新go版本再次编译" class="headerlink" title="更新go版本再次编译"></a>更新go版本再次编译</h3><ul>
+<li>更新go版本<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># mv go go-bootstrap</span></span><br><span class="line">[root@snails ~]<span class="comment"># git clone https://github.com/golang/go.git</span></span><br><span class="line">[root@snails ~]<span class="comment"># cd go</span></span><br><span class="line">``` </span><br><span class="line">* 再次编译</span><br><span class="line">``` bash</span><br><span class="line">[root@snails go]<span class="comment"># vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> GOROOT_BOOTSTRAP=<span class="variable">$HOME</span>/go-bootstrap</span><br><span class="line">[root@snails go]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails go]<span class="comment"># cd src/</span></span><br><span class="line">[root@snails src]<span class="comment"># ./clean.bash</span></span><br><span class="line">[root@snails src]<span class="comment"># ./all.bash</span></span><br><span class="line">``` </span><br><span class="line"><span class="comment">## 实践验证</span></span><br><span class="line">``` bash</span><br><span class="line">[root@snails src]<span class="comment"># go version</span></span><br><span class="line">go version devel +d872201 Thu Jul 7 04:06:52 2016 +0000 linux/amd64</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/golang/">golang</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/07/golang/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/07/golang/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/07/07/jacman/" title="jacman" itemprop="url">jacman</a>
   </h1>
   <p class="article-author">By
@@ -384,6 +527,10 @@
 		<ul class="clearfix">
 		
 			
+				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>3</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/github/" title="github">github<sup>3</sup></a></li>
 			
 		
@@ -396,15 +543,7 @@
 			
 		
 			
-				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>1</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
 			
 		
 			
@@ -413,6 +552,10 @@
 		
 			
 				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
 			
 		
 			
