@@ -81,6 +81,402 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/07/22/mqtt2/" title="MQTT协议之连接和心跳介绍" itemprop="url">MQTT协议之连接和心跳介绍</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-22T03:46:06.000Z" itemprop="datePublished"> 发表于 2016-07-22</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="序"><a href="#序" class="headerlink" title="序"></a>序</h2><p>　  本篇会把连接(CONNECT)、心跳(PINGREQ/PINGRESP)、确认(CONNACK)、断开连接(DISCONNECT)和在一起进行介绍。</p>
+<blockquote>
+<p>在阅读本文之前推荐大家先读一下我的前两篇文章：<a href="http://www.jianshu.com/p/d726663efaa9" target="_blank" rel="external">MQTT协议及应用场景</a>　<a href="http://www.jianshu.com/p/7664baff32ce" target="_blank" rel="external">MQTT协议之头部信息介绍</a></p>
+</blockquote>
+<h2 id="CONNECT"><a href="#CONNECT" class="headerlink" title="CONNECT"></a>CONNECT</h2><p>　　MQTT v3.1.1有关字符串部分采用的修改版的UTF-8编码，CONNECT可变头部中协议名称、消息体都是采用修改版的UTF-8编码。前面基本上可变头部内容不多，下面是一个较为完整的CONNECT消息结构：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-26c5a25819047ea2.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt connect消息结构"></p>
+<blockquote>
+<p><strong>协议变化</strong><br>MQTT 3.1.1中CONNECT消息可变头部协议名称MQIsdp被改为MQTT。<br>MQTT 3.1.1中所有字符串明确规定使用UTF-8编码，包括客户端标识符(Client Identifier)。<br>MQTT 3.1.1中针对客户端标识符（ client identifier）限制由原来的23个字节上限改为65535个字节。<br>MQTT 3.1.1中CONNECT消息可变头部协议版本号，由<strong>0x03变成了0x04 QoS 0类型PUBLISH消息DUP标记必须被设置为0</strong>。<br>MQTT 3.1.1中MQTT Over WebSocket 被定义，互联网地址编码分配机构（Internet Assigned Numbers Authority）分配标识符为mqtt。虽在MQTT 3.1规范通篇没有提到WebSocket，但因其二进制属性可以很容易的在WebSocket通道传输。</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><strong>术语变化</strong></p>
+<ul>
+<li><em>MQTT代理 -&gt; MQTT服务器（MQTT Broker is now MQTT Server）</em></li>
+<li><em>消息ID -&gt; 包ID（Message ID is now Packet ID）</em></li>
+<li><em>消息类型 -&gt; 包类型（Message Type is now Packet Type）</em></li>
+<li><em>主题路径 -&gt; 主题名称（Subscribe and Unsubscribe take Topic Paths, rather than Topic names）</em></li>
+<li><em>以前在固定头部，现在在包类型中( Flags in the fixed header are now specific to the packet type</em></li>
+<li><em>0字节保留信息需要清除 （A zero byte retained message MUST NOT be stored as a retained message on the Server ）</em></li>
+</ul>
+</blockquote>
+<h3 id="可变头部"><a href="#可变头部" class="headerlink" title="可变头部"></a>可变头部</h3><p>　　协议名称和协议版本都是固定的。</p>
+<h3 id="连接标志-Connect-Flags"><a href="#连接标志-Connect-Flags" class="headerlink" title="连接标志(Connect Flags)"></a>连接标志(Connect Flags)</h3><p>　　一个字节表示，除了第1位是保留未使用，其它7位都具有不同含义。业务上很重要，对消息总体流程影响很大，需要牢记。</p>
+<h3 id="Clean-Session"><a href="#Clean-Session" class="headerlink" title="Clean Session"></a>Clean Session</h3><p>　　0，表示如果订阅的客户机断线了，要保存为其要推送的消息（QoS为1和QoS为2），若其重新连接时，需将这些消息推送（若客户端长时间不连接，需要设置一个过期值）。 1，断线服务器即清理相关信息，重新连接上来之后，会再次订阅。</p>
+<h3 id="Will-Flag"><a href="#Will-Flag" class="headerlink" title="Will Flag"></a>Will Flag</h3><p>　　定义了客户端（没有主动发送DISCONNECT消息）出现网络异常导致连接中断的情况下，服务器需要做的一些措施。<br>　　简而言之，就是客户端预先定义好，在自己异常断开的情况下，所留下的最后遗愿（Last Will），也称之为遗嘱（Testament）。 这个遗嘱就是一个由客户端预先定义好的主题和对应消息，附加在CONNECT的可变头部中，在客户端连接出现异常的情况下，由服务器主动发布此消息。<br>　　只有在Will Flag位为1时，Will Qos和Will Retain才会被读取，此时消息体payload中要出现Will Topic和Will Message具体内容，否则，Will QoS和Will Retain值会被忽略掉。　</p>
+<h3 id="Will-Qos"><a href="#Will-Qos" class="headerlink" title="Will Qos"></a>Will Qos</h3><p>　　两位表示，和PUBLISH消息固定头部的QoS level含义一样。这里先略过，到PUBLISH消息再回过头来看看，会更明白些。若标识了Will Flag值为1，那么Will QoS就会生效，否则会被忽略掉。</p>
+<h3 id="Will-Retain"><a href="#Will-Retain" class="headerlink" title="Will Retain"></a>Will Retain</h3><p>　　如果设置Will Flag，Will Retain标志就是有效的，否则它将被忽略。当客户端意外断开服务器发布其Will Message之后，服务器是否应该继续保存。这个属性和PUBLISH固定头部的RETAIN标志含义一样，这里先略过。</p>
+<h3 id="User-name-和-password-Flag"><a href="#User-name-和-password-Flag" class="headerlink" title="User name 和 password Flag"></a>User name 和 password Flag</h3><p>　　用于授权，两者要么为0要么为1，否则都是无效。都为0，表示客户端可自由连接/订阅，都为1，表示连接/订阅需要授权。</p>
+<h3 id="Payload-消息体"><a href="#Payload-消息体" class="headerlink" title="Payload/消息体"></a>Payload/消息体</h3><p>　　消息体定义的消息顺序（如上表所示），约定俗成，不得更改，否则将可能引起混乱。<br>　　若Will Flag值为0，那么在payload中，Client Identifer后面就不会存在Will Topic和Will Message内容。<br>　　若User Name和Password都为0，意味着Payload/消息体中，找不到User Name和password的值，就算有，也是无效。标志决定着是否读取与否。</p>
+<h3 id="心跳时间-Keep-Alive-timer"><a href="#心跳时间-Keep-Alive-timer" class="headerlink" title="心跳时间(Keep Alive timer)"></a>心跳时间(Keep Alive timer)</h3><p>　　以秒为单位，定义服务器端从客户端接收消息的最大时间间隔。一般应用服务会在业务层次检测客户端网络是否连接，不是TCP/IP协议层面的心跳机制(比如开启SOCKET的SO_KEEPALIVE选项)。 一般来讲，在一个心跳间隔内，客户端发送一个PINGREQ消息到服务器，服务器返回PINGRESP消息，完成一次心跳交互，继而等待下一轮。若客户端没有收到心跳反馈，会关闭掉TCP/IP端口连接，离线。 16位两个字节，可看做一个无符号的short类型值。最大值，2^16-1 = 65535秒 = 18小时。最小值可以为0，表示客户端不断开。一般设为几分钟，比如微信心跳周期为300秒。</p>
+<h3 id="Will-Message编码"><a href="#Will-Message编码" class="headerlink" title="Will Message编码"></a>Will Message编码</h3><p>　　Will Message在CONNECT Payload/息体中，使用UTF-8编码。假设内容为“abcd”，大概如下：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-8778e76586514aba.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt connect will message"></p>
+<blockquote>
+<p>注：PUBLISH的Payload/消息体中以二进制编码保存</p>
+</blockquote>
+<p>　　在某一时间点客户端异常关闭会触发服务器PUBLISH此消息。那么服务器会直接把byte3-byte6之间字符取出，保存为二进制，附加到PUBLISH消息体中，大概存储如下：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-ea0f65ee4936d3d5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt publish will message"></p>
+<h3 id="连接异常中断通知机制"><a href="#连接异常中断通知机制" class="headerlink" title="连接异常中断通知机制"></a>连接异常中断通知机制</h3><p>　　CONNECT消息一旦设置在可变头部设置了Will flag标记，那就启用了Last-Will-And-Testament特性，此特性很赞。<br>　　一旦客户端出现异常中断，便会触发服务器发布Will Message消息到Will Topic主题上去，通知Will Topic订阅者，对方因异常退出。</p>
+<h2 id="CONNACK"><a href="#CONNACK" class="headerlink" title="CONNACK"></a>CONNACK</h2><p>　　收到CONNECT消息之后，服务器应该返回一个CONNACK消息作为响应：</p>
+<ul>
+<li>若客户端绕过CONNECT消息直接发送其它类型消息，服务器应关闭此非法连接 若客户端发送CONNECT之后未收到CONNACT，需要关闭当前连接，然后重新连接</li>
+<li>相同Client ID客户端已连接到服务器，先前客户端必须断开连接后，服务器才能完成新的客户端CONNECT连接 客户端发送无效非法CONNECT消息，服务器需要关闭。<br>　　一个完整的CONNACK消息大致如下：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-6b29dea2b202aa9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="connack"><br>　　可变头部第一个字节为保留，无甚用处。第二个字节为连接握手返回码：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-a7f36620d0bc7b00.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="connack response code"><br>　　只有0-5目前被使用到，其他值有待日后使用。一般返回值为0x00，表示连接建立。非法的请求，需要返回相应的数值。<br>　　从上面看出，一个CONNACK，四个字节表示。一个正常的CONNACK消息实际内容可能如下：<br><code>0x20 0x02 0x00 0x00</code>　<br>　　若是在私有协议中，两个字节就足够了。很多时候，客户端和服务器端在没有消息传递时，会一直保持着连接。虽然不能依靠TCP心跳机制（比如SO_KEEPALIVE选项），业务层面定义心跳机制，会让连接状态检测、控制更为直观。</li>
+</ul>
+<h2 id="PINGREQ"><a href="#PINGREQ" class="headerlink" title="PINGREQ"></a>PINGREQ</h2><p>　　由客户端发送到服务器端，证明自己还在一直连接着呢。两个字节，固定值。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-490c3e29296425ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="PINGREQ"><br>　　客户端会在一个心跳周期内发送一条PINGREQ消息到服务器端。心跳频率在CONNECT可变头部“Keep Alive Timer”中定义时间，单位为秒，无符号16位short表示。</p>
+<h2 id="PINGRESP"><a href="#PINGRESP" class="headerlink" title="PINGRESP"></a>PINGRESP</h2><p>　　服务器收到PINGREQ请求之后，会立即响应一个两个字节固定格式的PINGRESP消息。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-1666626df6e704a4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="PINGRESP"><br>　　服务器一般若在1.5倍的心跳周期内接收不到客户端发送的PINGREQ，可考虑关闭客户端的连接描述符。此时的关闭连接的行为和接收到客户端发送DISCONNECT消息的处理行为一致，但对客户端的订阅不会产生影响（不会清除客户端订阅数据），这个需要牢记。<br>　　若客户端发送PINGREQ之后的一个心跳周期内接收不到PINGRESP消息，可考虑关闭TCP/IP套接字连接。</p>
+<h2 id="DISCONNECT"><a href="#DISCONNECT" class="headerlink" title="DISCONNECT"></a>DISCONNECT</h2><p>客户端主动发送到服务器端，表明即将关闭TCP/IP连接。此时要求服务器要完整、干净的进行断开处理，不能仅仅类似于关闭连接描述符类似草草处理之。 需要两个字节，值固定。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-15f7acebe773f738.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="DISCONNECT"><br>　　服务器要根据先前此客户端在发送CONNECT消息可变头部Connect flag中的“Clean session flag”所设置值。<br>复习一下：</p>
+<ol>
+<li>值为0，服务器必须在客户端断开之后继续存储/保持客户端的订阅状态。这些状态包括：<ul>
+<li><em>存储订阅的消息QoS1和QoS2消息</em></li>
+<li><em>正在发送消息期间连接丢失导致发送失败的消息。</em></li>
+<li><em>以便当客户端重新连接时以上消息可以被重新传递。</em></li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>值为1，服务器需要立刻清理连接状态数据。</li>
+</ul>
+<blockquote>
+<p>注意：服务器在接收到客户端发送的DISCONNECT消息之后，需要主动关闭TCP/IP连接。</p>
+</blockquote>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/mqtt/">mqtt</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/22/mqtt2/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/22/mqtt2/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/22/mqtt1/" title="MQTT协议之头部信息介绍" itemprop="url">MQTT协议之头部信息介绍</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-22T03:45:32.000Z" itemprop="datePublished"> 发表于 2016-07-22</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>　　MQTT（Message Queue Telemetry Transport）,遥测传输协议，提供订阅/发布模式，更为简约、轻量，易于使用，针对受限环境（带宽低、网络延迟高、网络通信不稳定），可以简单概括为物联网打造，官方总结特点如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">1.使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合。</span><br><span class="line">2. 对负载内容屏蔽的消息传输。</span><br><span class="line">3. 使用 TCP/IP 提供网络连接。</span><br><span class="line">4. 有三种消息发布服务质量：</span><br><span class="line">    “至多一次”，消息发布完全依赖底层 TCP/IP 网络。会发生消息丢失或重复。这一级别可用于如下情况，环境传感器数据，丢失一次读记录无所谓，因为不久后还会有第二次发送。</span><br><span class="line">    “至少一次”，确保消息到达，但消息重复可能会发生。</span><br><span class="line">    “只有一次”，确保消息到达一次。这一级别可用于如下情况，在计费系统中，消息重复或丢失会导致不正确的结果。</span><br><span class="line">5. 小型传输，开销很小（固定长度的头部是 2 字节），协议交换最小化，以降低网络流量。</span><br><span class="line">6. 使用 Last Will 和 Testament 特性通知有关各方客户端异常中断的机制。</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>　　在沉寂了四年之后， <a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html" target="_blank" rel="external">MQTT 3.1.1规范</a> 于2014年10月30号正式发布，与此同时MQTT 3.1.1已成为OASIS（结构化信息标准促进组织）开放物联网消息传递协议标准（ <a href="https://www.oasis-open.org/standards#mqttv3.1.1" target="_blank" rel="external">连接1</a> <a href="https://www.oasis-open.org/news/announcements/mqtt-version-3-1-1-becomes-an-oasis-standard" target="_blank" rel="external">连接2</a> ），换种说法就是MQTT 3.1.1已升级为国际物联网标准。<br>　　细心的朋友一定会发现，原来<a href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html" target="_blank" rel="external">MQTT 3.1规范</a>是IBM的协议，到了<a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html" target="_blank" rel="external">MQTT 3.1.1规范</a> 后就变成了OASIS的标准。<br>　　中文版的文档查看以下的链接：<br>　　<a href="https://mcxiaoke.gitbooks.io/mqtt-cn/content/" target="_blank" rel="external">MQTT协议v3.1中文版</a><br>　　<a href="http://blog.mcxiaoke.com/mqtt/protocol/MQTT-3.1.1-CN.html" target="_blank" rel="external">MQTT协议v3.1.1中文版</a></p>
+</blockquote>
+<h2 id="协议介绍"><a href="#协议介绍" class="headerlink" title="协议介绍"></a>协议介绍</h2><h3 id="固定头部"><a href="#固定头部" class="headerlink" title="固定头部"></a>固定头部</h3><p>　　固定头部，使用两个字节，共16位：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-e8960a4f7164a0cb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 固定头部"><br><strong>Byte 1</strong>　消息类型和标志字段，消息类型(4-7)，使用4位二进制表示，可代表16种消息类型。<br><strong>Byte 2</strong>　剩余长度字段（至少1个字节，最多4个字节），采用<strong><em>big-endian</em></strong>模式存储。</p>
+<h3 id="消息类型"><a href="#消息类型" class="headerlink" title="消息类型"></a>消息类型</h3><p><img src="http://upload-images.jianshu.io/upload_images/1292466-9ef55ffbc89dbf39.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 消息类型"></p>
+<blockquote>
+<p>除去0和15位置属于保留待用，共14种消息事件类型。</p>
+</blockquote>
+<h3 id="DUP-flag（打开标志）"><a href="#DUP-flag（打开标志）" class="headerlink" title="DUP flag（打开标志）"></a>DUP flag（打开标志）</h3><p>保证消息可靠传输，默认为0，只占用一个字节，表示第一次发送。不能用于检测消息重复发送等。只适用于客户端或服务器端尝试重发PUBLISH, PUBREL, SUBSCRIBE 或 UNSUBSCRIBE消息，注意需要满足以下条件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">当 QoS &gt; 0</span><br><span class="line">消息需要回复确认</span><br></pre></td></tr></table></figure></p>
+<p>此时，在可变头部需要包含消息ID。当值为1时，表示当前消息先前已经被传送过。</p>
+<h3 id="QoS-Quality-of-Service-服务质量"><a href="#QoS-Quality-of-Service-服务质量" class="headerlink" title="QoS(Quality of Service,服务质量)"></a>QoS(Quality of Service,服务质量)</h3><p>　　使用两个二进制表示PUBLISH类型消息：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-2333644c39b353f2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 服务质量"></p>
+<h3 id="RETAIN-保持"><a href="#RETAIN-保持" class="headerlink" title="RETAIN(保持)"></a>RETAIN(保持)</h3><p>　　仅针对PUBLISH消息。不同值，不同含义：<br>　　<strong>1</strong>：表示发送的消息需要一直持久保存（不受服务器重启影响），不但要发送给当前的订阅者，并且以后新来的订阅了此Topic name的订阅者会马上得到推送。</p>
+<blockquote>
+<p>备注：新来乍到的订阅者，只会取出最新的一个RETAIN flag = 1的消息推送。</p>
+</blockquote>
+<p>　　<strong>0</strong>：仅仅为当前订阅者推送此消息。<br>假如服务器收到一个空消息体(zero-length payload)、RETAIN = 1、已存在Topic name的PUBLISH消息，服务器可以删除掉对应的已被持久化的PUBLISH消息。</p>
+<h3 id="Remaining-Length（剩余长度）"><a href="#Remaining-Length（剩余长度）" class="headerlink" title="Remaining Length（剩余长度）"></a>Remaining Length（剩余长度）</h3><p>　　在当前消息中剩余的byte(字节)数，包含可变头部和负荷(称之为内容/body，更为合适)。单个字节最大值：01111111，16进制：0x7F，10进制为127。单个字节为什么不能是11111111（0xFF）呢？因为MQTT协议规定，第八位（最高位）若为1，则表示还有后续字节存在。<br>　　同时MQTT协议最多允许4个字节表示剩余长度。那么最大长度为：0xFF,0xFF,0xFF,0x7F。<br><strong>二进制表示为：</strong>11111111,11111111,11111111,01111111<br><strong>十进制：</strong>268435455 byte=261120KB=256MB=0.25GB<br><strong>四个字节之间值的范围：</strong></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-365abfb458b5b75b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 剩余长度"></p>
+<h3 id="可变头部"><a href="#可变头部" class="headerlink" title="可变头部"></a>可变头部</h3><p>　　固定头部仅定义了消息类型和一些标志位，一些消息的元数据，需要放入可变头部中。<strong>可变头部内容字节长度 + Playload/负荷字节长度 = 剩余长度</strong>，这个是需要牢记的。可变头部，包含了协议名称，版本号，连接标志，用户授权，心跳时间等内容，这部分和后面要讲到的CONNECT消息类型，有重复，暂时略过。</p>
+<h3 id="Playload-消息体-负荷"><a href="#Playload-消息体-负荷" class="headerlink" title="Playload/消息体/负荷"></a>Playload/消息体/负荷</h3><p>　　消息体主要是为配合固定/可变头部命令（比如CONNECT可变头部User name标记若为1则需要在消息体中附加用户名称字符串）而存在。<br>　　CONNECT/SUBSCRIBE/SUBACK/PUBLISH等消息有消息体。PUBLISH的消息体以二进制形式对待。<br>　　请记住MQTT协议只允许在PUBLISH类型消息体中使用<strong><em>自定义</em></strong>特性，在固定/可变头部想加入自定义私有特性，就免了吧。这也是为了协议免于流于形式，变得很分裂也为了兼顾现有客户端等。比如支持压缩等，那就可以在Playload中定义数据支持，在应用中进行读取处理。这部分会在后面的文章中详细论述。</p>
+<h3 id="消息标识符-消息ID"><a href="#消息标识符-消息ID" class="headerlink" title="消息标识符/消息ID"></a>消息标识符/消息ID</h3><p>　　<strong><em>固定头中的QoS level标志值为1或2时</em></strong>才会在：PUBLISH，PUBACK，PUBREC，PUBREL，PUBCOMP，SUBSCRIBE，SUBACK，UNSUBSCRIBE，UNSUBACK等消息的可变头中出现。<br>　　一个16位无符号位的short类型值（值不能为 0，0做保留作为无效的消息ID），仅仅要求在一个特定方向（服务器发往客户端为一个方向，客户端发送到服务器端为另一个方向）的通信消息中必须唯一。比如客户端发往服务器，有可能存在服务器发往客户端会同时存在重复，但不碍事。<br>　　可变头部中，需要两个字节的顺序是MSB(Most Significant Bit) LSB(Last/Least Significant Bit)，翻译成中文就是，最高有效位，最低有效位。最高有效位在最低有效位左边/上面，表示这是一个大端字节/网络字节序，符合人的阅读习惯，高位在最左边。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-8a3076a99db89f82.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 消息标识符"></p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>　　掌握固定头部的QoS level、RETAIN标记、可变头部的Connect flags作用和意义，对总体理解MQTT作用很大。下面列举了一些常用的操作：<br><strong>CONNECT</strong><br>　　TCP连接建立完毕后，Client向Server发出一个Request。<br>如果一段时间内接收不到Server的Response，则关闭socket，重新建立一个session连接。<br>　　如果一个ClientID已经与服务器连接，则持有同样ClientID的旧有连接必须由服务器关闭后，新建立才能建立。<br><strong>CONNACK</strong><br>　　Server发出Response响应。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0x00 Connection Accepted</span><br><span class="line">0x01 Connection Refused: unacceptable protocol version</span><br><span class="line">0x02 Connection Refused: identifier rejected</span><br><span class="line">0x03 Connection Refused: server unavailable</span><br><span class="line">0x04 Connection Refused: bad user name or password</span><br><span class="line">0x05 Connection Refused: not authorized</span><br></pre></td></tr></table></figure></p>
+<p><strong>PUBLISH 发布消息</strong><br>　　Client/Servier均可以进行PUBLISH。<br>　　publish message 应该包含一个TopicName(Subject/Channel)，即订阅关键词。</p>
+<blockquote>
+<p><strong><em>关于Topic通配符</em></strong></p>
+<ul>
+<li>/：用来表示层次，比如a/b，a/b/c。</li>
+<li>#：表示匹配&gt;=0个层次，比如a/#就匹配a/，a/b，a/b/c。<br>单独的一个#表示匹配所有。不允许 a#和a/#/c。</li>
+<li>+：表示匹配一个层次，例如a/+匹配a/b，a/c，不匹配a/b/c。<br>单独的一个+是允许的，a+不允许，a/+/b不允许</li>
+</ul>
+</blockquote>
+<p><strong>PUBACK 发布消息后的确认</strong><br>　　<strong><em>QoS=1时</em></strong>，Server向Client发布该确认（Client收到确认后删除），订阅者向Server发布确认。<br><strong>PUBREC / PUBREL / PUBCOMP</strong><br>　　<strong><em>QoS=2时</em></strong><br>　　1. Server-&gt;Client发布PUBREC（已收到）；<br>　　2. Client-&gt;Server发布PUBREL（已释放）；<br>　　3. Server-&gt;Client发布PUBCOMP（已完成），Client删除msg；订阅者也会向Server发布类似过程确认。<br><strong>PINGREQ / PINGRES 心跳</strong><br>　　Client有责任发送KeepAliveTime时长告诉给Server。在一个时长内，发送PINGREQ，Server发送PINGRES确认。<br> 　　Server在1.5个时长内未收到PINGREQ，就断开连接。<br>　　Client在1个时长内未收到PINGRES，断开连接。<br>　　一般来说，时长设置为几个分钟。最大18小时，0表示一直未断开。<br><strong>Clean Session</strong><br>　　如果为false(flag=0)，Client断开连接后，Server应该保存Client的订阅信息。<br>　　如果为true(flag=1)，表示Server应该立刻丢弃任何会话状态信息。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/mqtt/">mqtt</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/22/mqtt1/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/22/mqtt1/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/22/mqtt/" title="MQTT协议及应用场景" itemprop="url">MQTT协议及应用场景</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-22T03:44:38.000Z" itemprop="datePublished"> 发表于 2016-07-22</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　近来公司需要做一个即时通讯工具，选型用MQTT协议来做。于是仔细搜集MQTT相关的了一些资料，并分享出来供大家参考。</p>
+<h2 id="MQTT简介"><a href="#MQTT简介" class="headerlink" title="MQTT简介"></a>MQTT简介</h2><p>　　MQTT（Message Queuing Telemetry Transport，消息队列遥测传输）是IBM开发的一个即时通讯协议，它是一种轻量级的、基于代理的“发布/订阅”模式的消息传输协议。其具有协议简洁、小巧、可扩展性强、省流量、省电等优点，而且已经有PHP，JAVA，Python，C，C#，Go等多个语言版本，基本可以使用在任何平台上，几乎可以把所有联网物品和外部连接起来，所以特别适合用来当做物联网的通信协议。</p>
+<h2 id="MQTT特点"><a href="#MQTT特点" class="headerlink" title="MQTT特点"></a>MQTT特点</h2><p>　　MQTT协议是为大量计算能力有限，且工作在低带宽、不可靠的网络的远程传感器和控制设备通讯而设计的协议，它具有以下主要的几项特性：</p>
+<ol>
+<li>使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合；</li>
+</ol>
+<ul>
+<li>对负载内容屏蔽的消息传输；</li>
+<li>使用 TCP/IP 提供网络连接；</li>
+<li>有三种消息发布服务质量：<ul>
+<li>“至多一次”，消息发布完全依赖底层 TCP/IP 网络。会发生消息丢失或重复。这一级别可用于如下情况，环境传感器数据，丢失一次读记录无所谓，因为不久后还会有第二次发送。</li>
+<li>“至少一次”，确保消息到达，但消息重复可能会发生。</li>
+<li>“只有一次”，确保消息到达一次。这一级别可用于如下情况，在计费系统中，消息重复或丢失会导致不正确的结果。</li>
+</ul>
+</li>
+<li>小型传输，开销很小（固定长度的头部是 2 字节），协议交换最小化，以降低网络流量；</li>
+<li>使用 Last Will 和 Testament 特性通知有关各方客户端异常中断的机制；</li>
+</ul>
+<h2 id="MQTT协议特征"><a href="#MQTT协议特征" class="headerlink" title="MQTT协议特征"></a>MQTT协议特征</h2><ol>
+<li><strong>消息模型</strong><br>　　MQTT是一种基于代理的发布/订阅的消息协议。提供一对多的消息分发，解除应用程序耦合。一个发布者可以对应多个订阅者，当发布者发生变化的时候，他可以将消息一一通知给所有的订阅者。这种模式提供了更大的网络扩展性和更动态的网络拓扑。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-4eade55a8346ec75.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="MQTT 消息传输模型"></li>
+</ol>
+<ul>
+<li><strong>消息质量</strong><br>MQTT提供三种质量的服务：<ol>
+<li>至多一次，可能会出现丢包的现象。使用在对实时性要求不高的情况。这一级别可应用于如下情景，如环境传感器数据，丢失一次读记录无所谓，因为很快下一次读记录就会产生。</li>
+</ol>
+<ul>
+<li>至少一次，保证包会到达目的地，但是可能出现重包。</li>
+<li>正好一次，保证包会到达目的地，且不会出现重包的现象。这一级别可用于如计费系统等场景，在计费系统中，消息丢失或重复可能会导致生成错误的费用。</li>
+</ul>
+</li>
+<li><strong>主题名称</strong><br>　　主题名称（Topic name）用来标识已发布消息的信息的渠道。订阅者用它来确定接收到所关心的信息。它是一个分层的结构，用斜线“/”作为分隔符。有两种通配符可以在主题发布、订阅时使用：“#”和“+”。前者可以通配多层结构，而后者只能通配一层结构。例如一个topic ： “a/b/c”,则“a/+/c”和“a/#”都可以和它相等。发布不支持模糊匹配，必须是确定的主题。</li>
+<li><strong>遗属</strong><br>　　当一个客户端断开连接的时候，它希望客户端可以发送它指定的消息。该消息和普通消息的结构相同。通过设置该位并填入和信息相关的内容即可。</li>
+<li><strong>消息类型</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>消息类型</th>
+<th style="text-align:center">类型编码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reserved</td>
+<td style="text-align:center">0</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>connect</td>
+<td style="text-align:center">1</td>
+<td>客户端到服务端的连接请求</td>
+</tr>
+<tr>
+<td>connACK</td>
+<td style="text-align:center">2</td>
+<td>服务端对连接请求的响应</td>
+</tr>
+<tr>
+<td>publish</td>
+<td style="text-align:center">3</td>
+<td>发布消息</td>
+</tr>
+<tr>
+<td>puback</td>
+<td style="text-align:center">4</td>
+<td>对发布消息的回应</td>
+</tr>
+<tr>
+<td>pubRec</td>
+<td style="text-align:center">5</td>
+<td>收到发布消息（保证传输part1）</td>
+</tr>
+<tr>
+<td>pubRel</td>
+<td style="text-align:center">6</td>
+<td>释放发布消息（保证传输part2）</td>
+</tr>
+<tr>
+<td>pubComp</td>
+<td style="text-align:center">7</td>
+<td>完成发布消息（保证传输part3）</td>
+</tr>
+<tr>
+<td>subscribe</td>
+<td style="text-align:center">8</td>
+<td>客户端订阅请求</td>
+</tr>
+<tr>
+<td>subBack</td>
+<td style="text-align:center">9</td>
+<td>订阅请求的回应</td>
+</tr>
+<tr>
+<td>unsubscribe</td>
+<td style="text-align:center">10</td>
+<td>停止订阅请求</td>
+</tr>
+<tr>
+<td>unsubBack</td>
+<td style="text-align:center">11</td>
+<td>停止订阅请求响应</td>
+</tr>
+<tr>
+<td>pingReq</td>
+<td style="text-align:center">12</td>
+<td>Ping请求（保持连接）</td>
+</tr>
+<tr>
+<td>pingResp</td>
+<td style="text-align:center">13</td>
+<td>Ping响应</td>
+</tr>
+<tr>
+<td>disconnect</td>
+<td style="text-align:center">14</td>
+<td>客户端正在断开</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td style="text-align:center">15</td>
+<td>保留</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>开发一个MQTT库需要提供如下命令：</strong><br>Connect ：当一个TCP/IP套接字在服务器端和客户端连接建立时需要使用的命令。<br>publish  ： 是由客户端向服务端发送，告诉服务器端自己感兴趣的Topic。每一个publishMessage 都会与一个Topic的名字联系在一起。<br>pubRec:   是publish命令的响应，只不过使用了2级QoS协议。它是2级QoS协议的第二条消息<br>pubRel:    是2级QoS协议的第三条消息<br>publComp: 是2级QoS协议的第四条消息<br>subscribe： 允许一个客户端注册自已感兴趣的Topic 名字，发布到这些Topic的消息会以publish Message的形式由服务器端发送给客户端。<br>unsubscribe:  从客户端到服务器端，退订一个Topic。<br>Ping： 有客户端向服务器端发送的“are you alive”的消息。<br>disconnect：断开这个TCP/IP协议。</p>
+</blockquote>
+<h2 id="MQTT服务端和客户端"><a href="#MQTT服务端和客户端" class="headerlink" title="MQTT服务端和客户端"></a>MQTT服务端和客户端</h2><p>MQTT协议服务端：<a href="https://github.com/mqtt/mqtt.github.io/wiki/servers" target="_blank" rel="external">https://github.com/mqtt/mqtt.github.io/wiki/servers</a><br>MQTT协议类库：<a href="https://github.com/mqtt/mqtt.github.io/wiki/libraries" target="_blank" rel="external">https://github.com/mqtt/mqtt.github.io/wiki/libraries</a><br>MQTT协议官网：<a href="http://mqtt.org/" target="_blank" rel="external">http://mqtt.org/</a></p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><h3 id="推送"><a href="#推送" class="headerlink" title="推送"></a>推送</h3><p>　　再给大家普及下“推送”这个概念，推送这个词大部分人都会有印象的。比如PC端的推送广告，比如安卓的推送服务，还有一些即时通信软件如微信、易信等也是采用的推送技术。<br>　　现在的推送实现的方式已经非常多了，主流的有<a href="">C2DM</a>服务（Google Cloud Messaging），基于<a href="">XML</a>协议的通讯协议<a href="">XMPP</a>协议（Openfire + Spark + Smack）, 轻量级的、基于代理的“发布/订阅”模式的消息传输协议MQTT协议，还可以通过嵌入<a href="">SDK</a>使用第三方提供的推送服务，如<a href="">百度云推送</a>、<a href="">极光推送</a>、<a href="">智游推送</a>、<a href="">腾讯信鸽</a>等。<br>　　推送利用的也是类似于上面提到的代理技术，从而将数据源源不断地推向客户机。笔者对其它协议了解不多所以也不敢多做妄言，但是现在国内很多企业都已经广泛使用MQTT作为Android手机客户端与服务器端推送消息的协议。其中Sohu，Cmstop手机客户端中均有使用到MQTT作为消息推送消息。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MQTT/">MQTT</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/22/mqtt/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/22/mqtt/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/07/21/deepin2/" title="利用 ssh 的用户配置文件 config 管理 ssh 会话" itemprop="url">利用 ssh 的用户配置文件 config 管理 ssh 会话</a>
   </h1>
   <p class="article-author">By
@@ -908,259 +1304,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/07/14/supervisor/" title="在CentOS7上用supervisor运行golang守护进程" itemprop="url">在CentOS7上用supervisor运行golang守护进程</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
-		
-  <p class="article-time">
-    <time datetime="2016-07-14T03:53:22.000Z" itemprop="datePublished"> 发表于 2016-07-14</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h2 id="安装pip"><a href="#安装pip" class="headerlink" title="安装pip"></a>安装pip</h2><p>###下载pip安装文件并执行安装</p>
-<ul>
-<li><p>下载文件</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://bootstrap.pypa.io/get-pip.py --no-check-certificate</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>执行安装</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># python get-pip.py</span></span><br><span class="line">[root@snails ~]<span class="comment"># pip -V</span></span><br><span class="line">pip 8.1.2 from /usr/lib/python2.7/site-packages (python 2.7)</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h3 id="设置pip国内aliyun源"><a href="#设置pip国内aliyun源" class="headerlink" title="设置pip国内aliyun源"></a>设置pip国内aliyun源</h3><ul>
-<li><p>创建或修改配置文件</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">linux ~/.pip/pip.conf</span><br><span class="line">windows %HOMEPATH%\pip\pip.ini</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>修改内容</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[global]  </span><br><span class="line">index-url = http:<span class="comment">//mirrors.aliyun.com/pypi/simple/  </span></span><br><span class="line"></span><br><span class="line">  [install]</span><br><span class="line">trusted-host=mirrors.aliyun.com</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>更新pip到最新版本</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip install -U pip</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>查看已安装的库</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip list</span></span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="安装supervisor"><a href="#安装supervisor" class="headerlink" title="安装supervisor"></a>安装supervisor</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip install supervisor</span></span><br></pre></td></tr></table></figure>
-<p>  安装成功便可以拥有Supervisor，如果没有启动脚本，可以从 <a href="https://github.com/cedricporter/supervisor_conf/blob/master/init.d/supervisor" target="_blank" rel="external">这里</a> 下载一份，放置到  /usr/lib/systemd/system 或 /etc/systemd/system 目录（后者优先级更高）下面便可。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://raw.githubusercontent.com/Supervisor/initscripts/master/centos-systemd-etcs -O /usr/lib/systemd/system/systemd-supervisor.service</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>通过Supervisor附送的贴心的小脚本生成默认的配置文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># echo_supervisord_conf &gt; /etc/supervisord.conf</span></span><br></pre></td></tr></table></figure></p>
-<p>　我们可以根据需要修改里面的配置。我这里，每个不同的项目，使用了一个单独的配置的文件，放置在 /etc/supervisor/下面，于是修改 /etc/supervisord.conf ，加上如下内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[include]</span><br><span class="line">files = /etc/supervisor/*.conf</span><br></pre></td></tr></table></figure></p>
-<h2 id="创建golang-http服务"><a href="#创建golang-http服务" class="headerlink" title="创建golang http服务"></a>创建golang http服务</h2><p>为了测试方便，我这里用一个最简单的golang http服务。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># vi ~/simple_http_server.go</span></span><br></pre></td></tr></table></figure></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"> <span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"log"</span></span><br><span class="line">	<span class="string">"net/http"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	http.HandleFunc(<span class="string">"/"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">		fmt.Fprintf(w, <span class="string">"Hello world\n"</span>)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	err := http.ListenAndServe(<span class="string">":9090"</span>, <span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(<span class="string">"ListenAndServe: "</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>直接运行这个程序会占用住终端，下面看看如何用supervisor来跑这个程序。</p>
-<h3 id="创建golang服务对应的supervisor配置文件"><a href="#创建golang服务对应的supervisor配置文件" class="headerlink" title="创建golang服务对应的supervisor配置文件"></a>创建golang服务对应的supervisor配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/supervisor/golang.conf</span><br><span class="line">[program:golang-http-server]</span><br><span class="line"><span class="built_in">command</span>=/root/simple_http_server</span><br><span class="line">autostart=<span class="literal">true</span></span><br><span class="line">autorestart=<span class="literal">true</span></span><br><span class="line">startsecs=10</span><br><span class="line">stdout_logfile=/var/<span class="built_in">log</span>/simple_http_server.log</span><br><span class="line">stdout_logfile_maxbytes=1MB</span><br><span class="line">stdout_logfile_backups=10</span><br><span class="line">stdout_capture_maxbytes=1MB</span><br><span class="line">stderr_logfile=/var/<span class="built_in">log</span>/simple_http_server.log</span><br><span class="line">stderr_logfile_maxbytes=1MB</span><br><span class="line">stderr_logfile_backups=10</span><br><span class="line">stderr_capture_maxbytes=1MB</span><br></pre></td></tr></table></figure>
-<ul>
-<li>几个配置说明：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">command</span>：表示运行的命令，填入完整的路径即可。autostart：表示是否跟随supervisor一起启动。autorestart：如果该程序挂了，是否重新启动。stdout_logfile：终端标准输出重定向文件。stderr_logfile：终端错误输出重定向文件。</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="启动supervisor"><a href="#启动supervisor" class="headerlink" title="启动supervisor"></a>启动supervisor</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># /usr/bin/supervisord -c /etc/supervisord.conf</span></span><br></pre></td></tr></table></figure>
-<p>如果出现什么问题，可以查看日志进行分析，日志文件路径/tmp/supervisord.log</p>
-<blockquote>
-<p>tips：如果修改了配置文件，可以用kill -HUP重新加载配置文件</p>
-</blockquote>
-  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># cat /tmp/supervisord.pid | xargs sudo kill -HUP</span></span><br></pre></td></tr></table></figure>
-<h3 id="查看supervisor运行状态"><a href="#查看supervisor运行状态" class="headerlink" title="查看supervisor运行状态"></a>查看supervisor运行状态</h3>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># supervisorctl</span></span><br><span class="line">golang-http-server               RUNNING   pid 30343, uptime 0:00:55</span><br></pre></td></tr></table></figure>
-<ul>
-<li>输入help可以查看帮助<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">supervisor&gt; <span class="built_in">help</span></span><br><span class="line">default commands (<span class="built_in">type</span> <span class="built_in">help</span> &lt;topic&gt;):</span><br><span class="line">=====================================</span><br><span class="line">add    <span class="built_in">exit</span>      open  reload  restart   start   tail   </span><br><span class="line">avail  <span class="built_in">fg</span>        pid   remove  shutdown  status  update </span><br><span class="line">clear  maintail  quit  reread  signal    stop    version</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="supervisor运行原理"><a href="#supervisor运行原理" class="headerlink" title="supervisor运行原理"></a>supervisor运行原理</h2><p>supervisor运行后本身是守护进程，通过自身来管理相应的子进程，通过观察相应的进程状态就很明了。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># ps -ef | grep supervisord</span></span><br><span class="line">root     30269     1  0 11:31 ?        00:00:00 /usr/bin/python /usr/bin/supervisord -c /etc/supervisord.conf</span><br><span class="line">[root@snails ~]<span class="comment"># ps -ef | grep simple_http_server</span></span><br><span class="line">root     30343 30269  0 11:45 ?        00:00:00 /root/simple_http_server</span><br></pre></td></tr></table></figure></p>
-<blockquote>
-<p>可以很直观的看出golang simple_http_server进程是supervisord的子进程。</p>
-</blockquote>
-<h2 id="supervisor是否靠谱"><a href="#supervisor是否靠谱" class="headerlink" title="supervisor是否靠谱"></a>supervisor是否靠谱</h2><p>supervisor的诞生已经10年了，现在是3+版本，所以放心使用吧。</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/golang/">golang</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/07/14/supervisor/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/14/supervisor/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/07/08/openresty/" title="在CentOS7上源码安装OpenResty" itemprop="url">在CentOS7上源码安装OpenResty</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
-		
-  <p class="article-time">
-    <time datetime="2016-07-08T06:05:04.000Z" itemprop="datePublished"> 发表于 2016-07-08</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>您必须将这些库<br>perl 5.6.1+<br>libreadline<br>libpcre<br>libssl<br>安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。</p>
-<ul>
-<li>CentOS 7 安装OpenResty所需依赖<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># yum -y install readline-devel pcre-devel openssl-devel gcc</span></span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="构建-OpenResty"><a href="#构建-OpenResty" class="headerlink" title="构建 OpenResty"></a>构建 OpenResty</h2><h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><p>从下载页 <a href="http://openresty.org/cn/download.html" target="_blank" rel="external">Download</a>下载最新的ngx_openresty源码包，并且像下面的示例一样将其解压:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://openresty.org/download/openresty-VERSION.tar.gz</span></span><br><span class="line">[root@snails ~]<span class="comment"># tar xzvf ngx_openresty-VERSION.tar.gz</span></span><br></pre></td></tr></table></figure></p>
-<p>VERSION  的地方替换成您下载的源码包的版本号，比如说 1.9.15.1。</p>
-<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><p>然后在进入 ngx_openresty-VERSION/<br> 目录, 然后输入以下命令配置:<br>./configure –prefix=/root/openresty</p>
-<p>默认, –prefix=/usr/local/openresty<br> 程序会被安装到/usr/local/openresty目录。<br>您可以指定各种选项，比如<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@snails openresty-1.9.15.1]<span class="comment"># ./configure --prefix=/opt/openresty \</span></span><br><span class="line">                                              --with-luajit \</span><br><span class="line">                                              --with-http_stub_status_module</span><br><span class="line">gmake</span><br><span class="line">gmake install</span><br></pre></td></tr></table></figure></p>
-<p>试着使用 ./configure –help 查看更多的选项。</p>
-<h3 id="设置环境变量及文件软链接"><a href="#设置环境变量及文件软链接" class="headerlink" title="设置环境变量及文件软链接"></a>设置环境变量及文件软链接</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># ln -s /usr/local/openresty/nginx /usr/local/nginx</span></span><br><span class="line">[root@snails ~]<span class="comment"># vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> ORPATH=/usr/<span class="built_in">local</span>/openresty</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$ORPATH</span>/bin:<span class="variable">$ORPATH</span>/nginx/sbin</span><br></pre></td></tr></table></figure>
-<h3 id="配置用户及组"><a href="#配置用户及组" class="headerlink" title="配置用户及组"></a>配置用户及组</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails nginx]<span class="comment"># groupadd -f www  </span></span><br><span class="line">[root@snails nginx]<span class="comment"># useradd -s /sbin/nologin -g www www</span></span><br><span class="line">[root@snails nginx]<span class="comment"># vi conf/nginx.conf</span></span><br><span class="line">user www www;</span><br></pre></td></tr></table></figure>
-<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails nginx]<span class="comment"># nginx</span></span><br><span class="line">[root@snails nginx]<span class="comment"># curl -I localhost</span></span><br><span class="line">HTTP/1.1 200 OK</span><br></pre></td></tr></table></figure>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/openresty/">openresty</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/07/08/openresty/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/08/openresty/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/07/08/mongo/" title="在CentOS7上源码安装MongoDB 3.2.7" itemprop="url">在CentOS7上源码安装MongoDB 3.2.7</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
-		
-  <p class="article-time">
-    <time datetime="2016-07-08T00:59:05.000Z" itemprop="datePublished"> 发表于 2016-07-08</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># mkdir /root/mongodb #创建MongoDB程序存放目录</span></span><br><span class="line">[root@snails ~]<span class="comment">#mkdir /data/mongodata -p #创建数据存放目录</span></span><br><span class="line">[root@snails ~]<span class="comment"># mkdir /data/log/mongolog -p #创建日志存放目录</span></span><br><span class="line">[root@snails ~]<span class="comment"># curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.2.7.tgz</span></span><br></pre></td></tr></table></figure>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># tar xf mongodb-linux-x86_64-3.2.7.tgz</span></span><br><span class="line">[root@snails ~]<span class="comment"># cd mongodb-linux-x86_64-3.2.7/</span></span><br><span class="line">[root@snails ~]<span class="comment"># cp -r * /root/mongodb</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>为了便于命令启动，需要编辑全局变量PATH<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># vi /etc/profile.d/mongo.sh</span></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:/root/mongodb/bin</span><br><span class="line">[root@snails ~]<span class="comment"># source /etc/profile</span></span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h2><p> 首先查看mongod的帮助信息</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pwd</span></span><br><span class="line">/root/mongodb/bin</span><br><span class="line">[root@snails ~]<span class="comment"># vi /etc/profile.d/mongo.sh</span></span><br><span class="line">[root@snails ~]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails ~]<span class="comment"># mongod --help</span></span><br><span class="line">Options:</span><br><span class="line"></span><br><span class="line">General options:</span><br><span class="line">  -h [ --help ]                         show this usage information</span><br><span class="line">  --version                             show version information</span><br><span class="line">  <span class="_">-f</span> [ --config ] arg                   configuration file specifying </span><br><span class="line">                                        additional options</span><br><span class="line">  -v [ --verbose ] [=arg(=v)]           be more verbose (include multiple <span class="built_in">times</span></span><br><span class="line">                                        <span class="keyword">for</span> more verbosity e.g. -vvvvv)</span><br><span class="line">  --quiet                               quieter output</span><br><span class="line">  --port arg                            specify port number - 27017 by default</span><br><span class="line">  --bind_ip arg                         comma separated list of ip addresses to</span><br><span class="line">                                        listen on - all <span class="built_in">local</span> ips by default</span><br><span class="line">  --ipv6                                <span class="built_in">enable</span> IPv6 support (disabled by </span><br><span class="line">                                        default)</span><br><span class="line">  --maxConns arg                        max number of simultaneous connections </span><br><span class="line">                                        - 1000000 by default</span><br><span class="line">  --logpath arg                         <span class="built_in">log</span> file to send write to instead of </span><br><span class="line">                                        stdout - has to be a file, not </span><br><span class="line">                                        directory</span><br><span class="line">  --syslog                              <span class="built_in">log</span> to system<span class="string">'s syslog facility instead</span><br><span class="line">                                        of file or stdout</span><br><span class="line">  --syslogFacility arg                  syslog facility used for mongodb syslog</span><br><span class="line">                                        message</span><br><span class="line">  --logappend                           append to logpath instead of </span><br><span class="line">                                        over-writing</span><br><span class="line">  --logRotate arg                       set the log rotation behavior </span><br><span class="line">                                        (rename|reopen)</span><br><span class="line">  --timeStampFormat arg                 Desired format for timestamps in log </span><br><span class="line">                                        messages. One of ctime, iso8601-utc or </span><br><span class="line">                                        iso8601-local</span><br><span class="line">  --pidfilepath arg                     full path to pidfile (if not set, no </span><br><span class="line">                                        pidfile is created)</span><br><span class="line">  --keyFile arg                         private key for cluster authentication</span><br><span class="line">  --noauth                              run without security</span><br><span class="line">  --setParameter arg                    Set a configurable parameter</span><br><span class="line">  --httpinterface                       enable http interface</span><br><span class="line">  --clusterAuthMode arg                 Authentication mode used for cluster </span><br><span class="line">                                        authentication. Alternatives are </span><br><span class="line">                                        (keyFile|sendKeyFile|sendX509|x509)</span><br><span class="line">  --nounixsocket                        disable listening on unix sockets</span><br><span class="line">  --unixSocketPrefix arg                alternative directory for UNIX domain </span><br><span class="line">                                        sockets (defaults to /tmp)</span><br><span class="line">  --filePermissions arg                 permissions to set on UNIX domain </span><br><span class="line">                                        socket file - 0700 by default</span><br><span class="line">  --fork                                fork server process</span><br><span class="line">  --auth                                run with security</span><br><span class="line">  --jsonp                               allow JSONP access via http (has </span><br><span class="line">                                        security implications)</span><br><span class="line">  --rest                                turn on simple rest api</span><br><span class="line">  --slowms arg (=100)                   value of slow for profile and console </span><br><span class="line">                                        log</span><br><span class="line">  --profile arg                         0=off 1=slow, 2=all</span><br><span class="line">  --cpu                                 periodically show cpu and iowait </span><br><span class="line">                                        utilization</span><br><span class="line">  --sysinfo                             print some diagnostic system </span><br><span class="line">                                        information</span><br><span class="line">  --noIndexBuildRetry                   don'</span>t retry any index builds that were </span><br><span class="line">                                        interrupted by shutdown</span><br><span class="line">  --noscripting                         <span class="built_in">disable</span> scripting engine</span><br><span class="line">  --notablescan                         <span class="keyword">do</span> not allow table scans</span><br><span class="line">  --shutdown                            <span class="built_in">kill</span> a running server (<span class="keyword">for</span> init </span><br><span class="line">                                        scripts)</span><br><span class="line"></span><br><span class="line">Replication options:</span><br><span class="line">  --oplogSize arg                       size to use (<span class="keyword">in</span> MB) <span class="keyword">for</span> replication op </span><br><span class="line">                                        log. default is 5% of disk space (i.e. </span><br><span class="line">                                        large is good)</span><br><span class="line"></span><br><span class="line">Master/slave options (old; use replica sets instead):</span><br><span class="line">  --master                              master mode</span><br><span class="line">  --slave                               slave mode</span><br><span class="line">  --source arg                          when slave: specify master as </span><br><span class="line">                                        &lt;server:port&gt;</span><br><span class="line">  --only arg                            when slave: specify a single database </span><br><span class="line">                                        to replicate</span><br><span class="line">  --slavedelay arg                      specify delay (<span class="keyword">in</span> seconds) to be used </span><br><span class="line">                                        when applying master ops to slave</span><br><span class="line">  --autoresync                          automatically resync <span class="keyword">if</span> slave data is </span><br><span class="line">                                        stale</span><br><span class="line"></span><br><span class="line">Replica <span class="built_in">set</span> options:</span><br><span class="line">  --replSet arg                         arg is &lt;setname&gt;[/&lt;optionalseedhostlist</span><br><span class="line">                                        &gt;]</span><br><span class="line">  --replIndexPrefetch arg               specify index prefetching behavior (<span class="keyword">if</span> </span><br><span class="line">                                        secondary) [none|_id_only|all]</span><br><span class="line">  --enableMajorityReadConcern           enables majority <span class="built_in">read</span>Concern</span><br><span class="line"></span><br><span class="line">Sharding options:</span><br><span class="line">  --configsvr                           <span class="built_in">declare</span> this is a config db of a </span><br><span class="line">                                        cluster; default port 27019; default </span><br><span class="line">                                        dir /data/configdb</span><br><span class="line">  --configsvrMode arg                   Controls what config server protocol is</span><br><span class="line">                                        <span class="keyword">in</span> use. When <span class="built_in">set</span> to <span class="string">"sccc"</span> keeps server</span><br><span class="line">                                        <span class="keyword">in</span> legacy SyncClusterConnection mode </span><br><span class="line">                                        even when the service is running as a </span><br><span class="line">                                        replSet</span><br><span class="line">  --shardsvr                            <span class="built_in">declare</span> this is a shard db of a </span><br><span class="line">                                        cluster; default port 27018</span><br><span class="line"></span><br><span class="line">SSL options:</span><br><span class="line">  --sslOnNormalPorts                    use ssl on configured ports</span><br><span class="line">  --sslMode arg                         <span class="built_in">set</span> the SSL operation mode </span><br><span class="line">                                        (disabled|allowSSL|preferSSL|requireSSL</span><br><span class="line">                                        )</span><br><span class="line">  --sslPEMKeyFile arg                   PEM file <span class="keyword">for</span> ssl</span><br><span class="line">  --sslPEMKeyPassword arg               PEM file password</span><br><span class="line">  --sslClusterFile arg                  Key file <span class="keyword">for</span> internal SSL </span><br><span class="line">                                        authentication</span><br><span class="line">  --sslClusterPassword arg              Internal authentication key file </span><br><span class="line">                                        password</span><br><span class="line">  --sslCAFile arg                       Certificate Authority file <span class="keyword">for</span> SSL</span><br><span class="line">  --sslCRLFile arg                      Certificate Revocation List file <span class="keyword">for</span> </span><br><span class="line">                                        SSL</span><br><span class="line">  --sslDisabledProtocols arg            Comma separated list of TLS protocols </span><br><span class="line">                                        to <span class="built_in">disable</span> [TLS1_0,TLS1_1,TLS1_2]</span><br><span class="line">  --sslWeakCertificateValidation        allow client to connect without </span><br><span class="line">                                        presenting a certificate</span><br><span class="line">  --sslAllowConnectionsWithoutCertificates </span><br><span class="line">                                        allow client to connect without </span><br><span class="line">                                        presenting a certificate</span><br><span class="line">  --sslAllowInvalidHostnames            Allow server certificates to provide </span><br><span class="line">                                        non-matching hostnames</span><br><span class="line">  --sslAllowInvalidCertificates         allow connections to servers with </span><br><span class="line">                                        invalid certificates</span><br><span class="line">  --sslFIPSMode                         activate FIPS 140-2 mode at startup</span><br><span class="line"></span><br><span class="line">Storage options:</span><br><span class="line">  --storageEngine arg                   what storage engine to use - defaults </span><br><span class="line">                                        to wiredTiger <span class="keyword">if</span> no data files present</span><br><span class="line">  --dbpath arg                          directory <span class="keyword">for</span> datafiles - defaults to </span><br><span class="line">                                        /data/db</span><br><span class="line">  --directoryperdb                      each database will be stored <span class="keyword">in</span> a </span><br><span class="line">                                        separate directory</span><br><span class="line">  --noprealloc                          <span class="built_in">disable</span> data file preallocation - will </span><br><span class="line">                                        often hurt performance</span><br><span class="line">  --nssize arg (=16)                    .ns file size (<span class="keyword">in</span> MB) <span class="keyword">for</span> new databases</span><br><span class="line">  --quota                               limits each database to a certain </span><br><span class="line">                                        number of files (8 default)</span><br><span class="line">  --quotaFiles arg                      number of files allowed per db, implies</span><br><span class="line">                                        --quota</span><br><span class="line">  --smallfiles                          use a smaller default file size</span><br><span class="line">  --syncdelay arg (=60)                 seconds between disk syncs (0=never, </span><br><span class="line">                                        but not recommended)</span><br><span class="line">  --upgrade                             upgrade db <span class="keyword">if</span> needed</span><br><span class="line">  --repair                              run repair on all dbs</span><br><span class="line">  --repairpath arg                      root directory <span class="keyword">for</span> repair files - </span><br><span class="line">                                        defaults to dbpath</span><br><span class="line">  --journal                             <span class="built_in">enable</span> journaling</span><br><span class="line">  --nojournal                           <span class="built_in">disable</span> journaling (journaling is on by</span><br><span class="line">                                        default <span class="keyword">for</span> 64 bit)</span><br><span class="line">  --journalOptions arg                  journal diagnostic options</span><br><span class="line">  --journalCommitInterval arg           how often to group/batch commit (ms)</span><br><span class="line"></span><br><span class="line">WiredTiger options:</span><br><span class="line">  --wiredTigerCacheSizeGB arg           maximum amount of memory to allocate </span><br><span class="line">                                        <span class="keyword">for</span> cache; defaults to 1/2 of physical </span><br><span class="line">                                        RAM</span><br><span class="line">  --wiredTigerStatisticsLogDelaySecs arg (=0)</span><br><span class="line">                                        seconds to <span class="built_in">wait</span> between each write to a</span><br><span class="line">                                        statistics file <span class="keyword">in</span> the dbpath; 0 means </span><br><span class="line">                                        <span class="keyword">do</span> not <span class="built_in">log</span> statistics</span><br><span class="line">  --wiredTigerJournalCompressor arg (=snappy)</span><br><span class="line">                                        use a compressor <span class="keyword">for</span> <span class="built_in">log</span> records </span><br><span class="line">                                        [none|snappy|zlib]</span><br><span class="line">  --wiredTigerDirectoryForIndexes       Put indexes and data <span class="keyword">in</span> different </span><br><span class="line">                                        directories</span><br><span class="line">  --wiredTigerCollectionBlockCompressor arg (=snappy)</span><br><span class="line">                                        block compression algorithm <span class="keyword">for</span> </span><br><span class="line">                                        collection data [none|snappy|zlib]</span><br><span class="line">  --wiredTigerIndexPrefixCompression arg (=1)</span><br><span class="line">                                        use prefix compression on row-store </span><br><span class="line">                                        leaf pages</span><br></pre></td></tr></table></figure>
-<h2 id="创建服务文件"><a href="#创建服务文件" class="headerlink" title="创建服务文件"></a>创建服务文件</h2><ul>
-<li>在mongodb/bin目录下创建配置文件mongodb.conf<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># cd mongodb/bin</span></span><br><span class="line">[root@snails bin]<span class="comment"># vi mongodb.conf</span></span><br><span class="line"><span class="comment">#数据文件存放目录</span></span><br><span class="line">dbpath = /data/mongodata</span><br><span class="line"><span class="comment">#日志文件存放目录</span></span><br><span class="line">logpath = /data/<span class="built_in">log</span>/mongolog/mongodb.log</span><br><span class="line"><span class="comment">#端口</span></span><br><span class="line">port = 27017</span><br><span class="line"><span class="comment">#以守护程序的方式启用，即在后台运行</span></span><br><span class="line">fork = <span class="literal">true</span>   </span><br><span class="line">nohttpinterface = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h3 id="启动服务-1"><a href="#启动服务-1" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># mongod --dbpath=/data/mongodata --logpath=/data/log/mongolog/mongodb.log --logappend --fork</span></span><br><span class="line"><span class="comment">#通过配置文件启动</span></span><br><span class="line">[root@snails bin]<span class="comment"># mongod -f /root/mongodb/bin/mongodb.conf</span></span><br><span class="line">netstat -tnlp | grep mongod</span><br><span class="line">tcp        0      0 0.0.0.0:27017           0.0.0.0:*               LISTEN      18093/mongod</span><br></pre></td></tr></table></figure>
-<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># mongo</span></span><br><span class="line">MongoDB shell version: 3.2.7</span><br><span class="line">connecting to: <span class="built_in">test</span></span><br><span class="line">Server has startup warnings: </span><br><span class="line">2016-07-07T20:38:09.623+0800 I CONTROL  [initandlisten] ** WARNING: You are running this process as the root user, <span class="built_in">which</span> is not recommended.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/enabled is <span class="string">'always'</span>.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] **        We suggest setting it to <span class="string">'never'</span></span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/defrag is <span class="string">'always'</span>.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] **        We suggest setting it to <span class="string">'never'</span></span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] ** WARNING: soft rlimits too low. rlimits <span class="built_in">set</span> to 15084 processes, 65535 files. Number of processes should be at least 32767.5 : 0.5 <span class="built_in">times</span> number of files.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">&gt; show dbs</span><br><span class="line"><span class="built_in">local</span>  0.000GB</span><br><span class="line">&gt; quit()</span><br></pre></td></tr></table></figure>
-<h2 id="消除警告"><a href="#消除警告" class="headerlink" title="消除警告"></a>消除警告</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># vi /etc/rc.local</span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">test</span> <span class="_">-f</span> /sys/kernel/mm/transparent_hugepage/enabled; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">test</span> <span class="_">-f</span> /sys/kernel/mm/transparent_hugepage/defrag; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">ulimit</span> -u 65535</span><br><span class="line">[root@snails bin]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span></span><br><span class="line">[root@snails bin]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span></span><br></pre></td></tr></table></figure>
-<h2 id="文件限制数调整"><a href="#文件限制数调整" class="headerlink" title="文件限制数调整"></a>文件限制数调整</h2><p>修改配置文件 /etc/security/limits.conf，添加配置信息：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">* soft nofile 65535</span><br><span class="line">* hard nofile 65535</span><br><span class="line">* soft nproc 32000</span><br><span class="line">* hard nproc 32000</span><br></pre></td></tr></table></figure></p>
-<h2 id="停止mongodb"><a href="#停止mongodb" class="headerlink" title="停止mongodb"></a>停止mongodb</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">正常停止方法: <span class="built_in">kill</span>  -2 PID </span><br><span class="line">&gt;use  admin  </span><br><span class="line">&gt;db.shutdownServer();</span><br></pre></td></tr></table></figure>
-<h2 id="再次验证"><a href="#再次验证" class="headerlink" title="再次验证"></a>再次验证</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># mongod -f /root/mongodb/bin/mongodb.conf</span></span><br><span class="line">about to fork child process, waiting until server is ready <span class="keyword">for</span> connections.</span><br><span class="line">forked process: 18229</span><br><span class="line">child process started successfully, parent exiting</span><br><span class="line">[root@snails bin]<span class="comment"># mongo</span></span><br><span class="line">MongoDB shell version: 3.2.7</span><br><span class="line">connecting to: <span class="built_in">test</span></span><br><span class="line">Server has startup warnings: </span><br><span class="line">2016-07-07T21:06:53.798+0800 I CONTROL  [initandlisten] ** WARNING: You are running this process as the root user, <span class="built_in">which</span> is not recommended.</span><br><span class="line">2016-07-07T21:06:53.798+0800 I CONTROL  [initandlisten] </span><br><span class="line">&gt; <span class="built_in">exit</span></span><br><span class="line"><span class="built_in">bye</span></span><br></pre></td></tr></table></figure>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/mongodb/">mongodb</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/07/08/mongo/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/08/mongo/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
@@ -1199,19 +1342,19 @@
 			
 		
 			
-				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/分布式/" title="分布式">分布式<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+				<li><a href="/tags/mqtt/" title="mqtt">mqtt<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
+				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MQTT/" title="MQTT">MQTT<sup>1</sup></a></li>
 			
 		
 			
@@ -1223,7 +1366,15 @@
 			
 		
 			
+				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
 			
 		
 		</ul>

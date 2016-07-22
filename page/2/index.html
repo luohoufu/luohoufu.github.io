@@ -81,6 +81,259 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/07/14/supervisor/" title="在CentOS7上用supervisor运行golang守护进程" itemprop="url">在CentOS7上用supervisor运行golang守护进程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-14T03:53:22.000Z" itemprop="datePublished"> 发表于 2016-07-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="安装pip"><a href="#安装pip" class="headerlink" title="安装pip"></a>安装pip</h2><p>###下载pip安装文件并执行安装</p>
+<ul>
+<li><p>下载文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://bootstrap.pypa.io/get-pip.py --no-check-certificate</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># python get-pip.py</span></span><br><span class="line">[root@snails ~]<span class="comment"># pip -V</span></span><br><span class="line">pip 8.1.2 from /usr/lib/python2.7/site-packages (python 2.7)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="设置pip国内aliyun源"><a href="#设置pip国内aliyun源" class="headerlink" title="设置pip国内aliyun源"></a>设置pip国内aliyun源</h3><ul>
+<li><p>创建或修改配置文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">linux ~/.pip/pip.conf</span><br><span class="line">windows %HOMEPATH%\pip\pip.ini</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改内容</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[global]  </span><br><span class="line">index-url = http:<span class="comment">//mirrors.aliyun.com/pypi/simple/  </span></span><br><span class="line"></span><br><span class="line">  [install]</span><br><span class="line">trusted-host=mirrors.aliyun.com</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>更新pip到最新版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip install -U pip</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看已安装的库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip list</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="安装supervisor"><a href="#安装supervisor" class="headerlink" title="安装supervisor"></a>安装supervisor</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pip install supervisor</span></span><br></pre></td></tr></table></figure>
+<p>  安装成功便可以拥有Supervisor，如果没有启动脚本，可以从 <a href="https://github.com/cedricporter/supervisor_conf/blob/master/init.d/supervisor" target="_blank" rel="external">这里</a> 下载一份，放置到  /usr/lib/systemd/system 或 /etc/systemd/system 目录（后者优先级更高）下面便可。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://raw.githubusercontent.com/Supervisor/initscripts/master/centos-systemd-etcs -O /usr/lib/systemd/system/systemd-supervisor.service</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>通过Supervisor附送的贴心的小脚本生成默认的配置文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># echo_supervisord_conf &gt; /etc/supervisord.conf</span></span><br></pre></td></tr></table></figure></p>
+<p>　我们可以根据需要修改里面的配置。我这里，每个不同的项目，使用了一个单独的配置的文件，放置在 /etc/supervisor/下面，于是修改 /etc/supervisord.conf ，加上如下内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[include]</span><br><span class="line">files = /etc/supervisor/*.conf</span><br></pre></td></tr></table></figure></p>
+<h2 id="创建golang-http服务"><a href="#创建golang-http服务" class="headerlink" title="创建golang http服务"></a>创建golang http服务</h2><p>为了测试方便，我这里用一个最简单的golang http服务。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># vi ~/simple_http_server.go</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"> <span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"log"</span></span><br><span class="line">	<span class="string">"net/http"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	http.HandleFunc(<span class="string">"/"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">		fmt.Fprintf(w, <span class="string">"Hello world\n"</span>)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	err := http.ListenAndServe(<span class="string">":9090"</span>, <span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(<span class="string">"ListenAndServe: "</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>直接运行这个程序会占用住终端，下面看看如何用supervisor来跑这个程序。</p>
+<h3 id="创建golang服务对应的supervisor配置文件"><a href="#创建golang服务对应的supervisor配置文件" class="headerlink" title="创建golang服务对应的supervisor配置文件"></a>创建golang服务对应的supervisor配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/supervisor/golang.conf</span><br><span class="line">[program:golang-http-server]</span><br><span class="line"><span class="built_in">command</span>=/root/simple_http_server</span><br><span class="line">autostart=<span class="literal">true</span></span><br><span class="line">autorestart=<span class="literal">true</span></span><br><span class="line">startsecs=10</span><br><span class="line">stdout_logfile=/var/<span class="built_in">log</span>/simple_http_server.log</span><br><span class="line">stdout_logfile_maxbytes=1MB</span><br><span class="line">stdout_logfile_backups=10</span><br><span class="line">stdout_capture_maxbytes=1MB</span><br><span class="line">stderr_logfile=/var/<span class="built_in">log</span>/simple_http_server.log</span><br><span class="line">stderr_logfile_maxbytes=1MB</span><br><span class="line">stderr_logfile_backups=10</span><br><span class="line">stderr_capture_maxbytes=1MB</span><br></pre></td></tr></table></figure>
+<ul>
+<li>几个配置说明：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">command</span>：表示运行的命令，填入完整的路径即可。autostart：表示是否跟随supervisor一起启动。autorestart：如果该程序挂了，是否重新启动。stdout_logfile：终端标准输出重定向文件。stderr_logfile：终端错误输出重定向文件。</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="启动supervisor"><a href="#启动supervisor" class="headerlink" title="启动supervisor"></a>启动supervisor</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># /usr/bin/supervisord -c /etc/supervisord.conf</span></span><br></pre></td></tr></table></figure>
+<p>如果出现什么问题，可以查看日志进行分析，日志文件路径/tmp/supervisord.log</p>
+<blockquote>
+<p>tips：如果修改了配置文件，可以用kill -HUP重新加载配置文件</p>
+</blockquote>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># cat /tmp/supervisord.pid | xargs sudo kill -HUP</span></span><br></pre></td></tr></table></figure>
+<h3 id="查看supervisor运行状态"><a href="#查看supervisor运行状态" class="headerlink" title="查看supervisor运行状态"></a>查看supervisor运行状态</h3>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># supervisorctl</span></span><br><span class="line">golang-http-server               RUNNING   pid 30343, uptime 0:00:55</span><br></pre></td></tr></table></figure>
+<ul>
+<li>输入help可以查看帮助<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">supervisor&gt; <span class="built_in">help</span></span><br><span class="line">default commands (<span class="built_in">type</span> <span class="built_in">help</span> &lt;topic&gt;):</span><br><span class="line">=====================================</span><br><span class="line">add    <span class="built_in">exit</span>      open  reload  restart   start   tail   </span><br><span class="line">avail  <span class="built_in">fg</span>        pid   remove  shutdown  status  update </span><br><span class="line">clear  maintail  quit  reread  signal    stop    version</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="supervisor运行原理"><a href="#supervisor运行原理" class="headerlink" title="supervisor运行原理"></a>supervisor运行原理</h2><p>supervisor运行后本身是守护进程，通过自身来管理相应的子进程，通过观察相应的进程状态就很明了。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># ps -ef | grep supervisord</span></span><br><span class="line">root     30269     1  0 11:31 ?        00:00:00 /usr/bin/python /usr/bin/supervisord -c /etc/supervisord.conf</span><br><span class="line">[root@snails ~]<span class="comment"># ps -ef | grep simple_http_server</span></span><br><span class="line">root     30343 30269  0 11:45 ?        00:00:00 /root/simple_http_server</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>可以很直观的看出golang simple_http_server进程是supervisord的子进程。</p>
+</blockquote>
+<h2 id="supervisor是否靠谱"><a href="#supervisor是否靠谱" class="headerlink" title="supervisor是否靠谱"></a>supervisor是否靠谱</h2><p>supervisor的诞生已经10年了，现在是3+版本，所以放心使用吧。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/golang/">golang</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/14/supervisor/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/14/supervisor/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/08/openresty/" title="在CentOS7上源码安装OpenResty" itemprop="url">在CentOS7上源码安装OpenResty</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-08T06:05:04.000Z" itemprop="datePublished"> 发表于 2016-07-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>您必须将这些库<br>perl 5.6.1+<br>libreadline<br>libpcre<br>libssl<br>安装在您的电脑之中。 对于 Linux来说, 您需要确认使用 ldconfig 命令，让其在您的系统环境路径中能找到它们。</p>
+<ul>
+<li>CentOS 7 安装OpenResty所需依赖<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># yum -y install readline-devel pcre-devel openssl-devel gcc</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="构建-OpenResty"><a href="#构建-OpenResty" class="headerlink" title="构建 OpenResty"></a>构建 OpenResty</h2><h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><p>从下载页 <a href="http://openresty.org/cn/download.html" target="_blank" rel="external">Download</a>下载最新的ngx_openresty源码包，并且像下面的示例一样将其解压:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># wget https://openresty.org/download/openresty-VERSION.tar.gz</span></span><br><span class="line">[root@snails ~]<span class="comment"># tar xzvf ngx_openresty-VERSION.tar.gz</span></span><br></pre></td></tr></table></figure></p>
+<p>VERSION  的地方替换成您下载的源码包的版本号，比如说 1.9.15.1。</p>
+<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><p>然后在进入 ngx_openresty-VERSION/<br> 目录, 然后输入以下命令配置:<br>./configure –prefix=/root/openresty</p>
+<p>默认, –prefix=/usr/local/openresty<br> 程序会被安装到/usr/local/openresty目录。<br>您可以指定各种选项，比如<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@snails openresty-1.9.15.1]<span class="comment"># ./configure --prefix=/opt/openresty \</span></span><br><span class="line">                                              --with-luajit \</span><br><span class="line">                                              --with-http_stub_status_module</span><br><span class="line">gmake</span><br><span class="line">gmake install</span><br></pre></td></tr></table></figure></p>
+<p>试着使用 ./configure –help 查看更多的选项。</p>
+<h3 id="设置环境变量及文件软链接"><a href="#设置环境变量及文件软链接" class="headerlink" title="设置环境变量及文件软链接"></a>设置环境变量及文件软链接</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># ln -s /usr/local/openresty/nginx /usr/local/nginx</span></span><br><span class="line">[root@snails ~]<span class="comment"># vi /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> ORPATH=/usr/<span class="built_in">local</span>/openresty</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$ORPATH</span>/bin:<span class="variable">$ORPATH</span>/nginx/sbin</span><br></pre></td></tr></table></figure>
+<h3 id="配置用户及组"><a href="#配置用户及组" class="headerlink" title="配置用户及组"></a>配置用户及组</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails nginx]<span class="comment"># groupadd -f www  </span></span><br><span class="line">[root@snails nginx]<span class="comment"># useradd -s /sbin/nologin -g www www</span></span><br><span class="line">[root@snails nginx]<span class="comment"># vi conf/nginx.conf</span></span><br><span class="line">user www www;</span><br></pre></td></tr></table></figure>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails nginx]<span class="comment"># nginx</span></span><br><span class="line">[root@snails nginx]<span class="comment"># curl -I localhost</span></span><br><span class="line">HTTP/1.1 200 OK</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/openresty/">openresty</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/08/openresty/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/08/openresty/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/08/mongo/" title="在CentOS7上源码安装MongoDB 3.2.7" itemprop="url">在CentOS7上源码安装MongoDB 3.2.7</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-08T00:59:05.000Z" itemprop="datePublished"> 发表于 2016-07-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># mkdir /root/mongodb #创建MongoDB程序存放目录</span></span><br><span class="line">[root@snails ~]<span class="comment">#mkdir /data/mongodata -p #创建数据存放目录</span></span><br><span class="line">[root@snails ~]<span class="comment"># mkdir /data/log/mongolog -p #创建日志存放目录</span></span><br><span class="line">[root@snails ~]<span class="comment"># curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.2.7.tgz</span></span><br></pre></td></tr></table></figure>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># tar xf mongodb-linux-x86_64-3.2.7.tgz</span></span><br><span class="line">[root@snails ~]<span class="comment"># cd mongodb-linux-x86_64-3.2.7/</span></span><br><span class="line">[root@snails ~]<span class="comment"># cp -r * /root/mongodb</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>为了便于命令启动，需要编辑全局变量PATH<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># vi /etc/profile.d/mongo.sh</span></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:/root/mongodb/bin</span><br><span class="line">[root@snails ~]<span class="comment"># source /etc/profile</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h2><p> 首先查看mongod的帮助信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># pwd</span></span><br><span class="line">/root/mongodb/bin</span><br><span class="line">[root@snails ~]<span class="comment"># vi /etc/profile.d/mongo.sh</span></span><br><span class="line">[root@snails ~]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@snails ~]<span class="comment"># mongod --help</span></span><br><span class="line">Options:</span><br><span class="line"></span><br><span class="line">General options:</span><br><span class="line">  -h [ --help ]                         show this usage information</span><br><span class="line">  --version                             show version information</span><br><span class="line">  <span class="_">-f</span> [ --config ] arg                   configuration file specifying </span><br><span class="line">                                        additional options</span><br><span class="line">  -v [ --verbose ] [=arg(=v)]           be more verbose (include multiple <span class="built_in">times</span></span><br><span class="line">                                        <span class="keyword">for</span> more verbosity e.g. -vvvvv)</span><br><span class="line">  --quiet                               quieter output</span><br><span class="line">  --port arg                            specify port number - 27017 by default</span><br><span class="line">  --bind_ip arg                         comma separated list of ip addresses to</span><br><span class="line">                                        listen on - all <span class="built_in">local</span> ips by default</span><br><span class="line">  --ipv6                                <span class="built_in">enable</span> IPv6 support (disabled by </span><br><span class="line">                                        default)</span><br><span class="line">  --maxConns arg                        max number of simultaneous connections </span><br><span class="line">                                        - 1000000 by default</span><br><span class="line">  --logpath arg                         <span class="built_in">log</span> file to send write to instead of </span><br><span class="line">                                        stdout - has to be a file, not </span><br><span class="line">                                        directory</span><br><span class="line">  --syslog                              <span class="built_in">log</span> to system<span class="string">'s syslog facility instead</span><br><span class="line">                                        of file or stdout</span><br><span class="line">  --syslogFacility arg                  syslog facility used for mongodb syslog</span><br><span class="line">                                        message</span><br><span class="line">  --logappend                           append to logpath instead of </span><br><span class="line">                                        over-writing</span><br><span class="line">  --logRotate arg                       set the log rotation behavior </span><br><span class="line">                                        (rename|reopen)</span><br><span class="line">  --timeStampFormat arg                 Desired format for timestamps in log </span><br><span class="line">                                        messages. One of ctime, iso8601-utc or </span><br><span class="line">                                        iso8601-local</span><br><span class="line">  --pidfilepath arg                     full path to pidfile (if not set, no </span><br><span class="line">                                        pidfile is created)</span><br><span class="line">  --keyFile arg                         private key for cluster authentication</span><br><span class="line">  --noauth                              run without security</span><br><span class="line">  --setParameter arg                    Set a configurable parameter</span><br><span class="line">  --httpinterface                       enable http interface</span><br><span class="line">  --clusterAuthMode arg                 Authentication mode used for cluster </span><br><span class="line">                                        authentication. Alternatives are </span><br><span class="line">                                        (keyFile|sendKeyFile|sendX509|x509)</span><br><span class="line">  --nounixsocket                        disable listening on unix sockets</span><br><span class="line">  --unixSocketPrefix arg                alternative directory for UNIX domain </span><br><span class="line">                                        sockets (defaults to /tmp)</span><br><span class="line">  --filePermissions arg                 permissions to set on UNIX domain </span><br><span class="line">                                        socket file - 0700 by default</span><br><span class="line">  --fork                                fork server process</span><br><span class="line">  --auth                                run with security</span><br><span class="line">  --jsonp                               allow JSONP access via http (has </span><br><span class="line">                                        security implications)</span><br><span class="line">  --rest                                turn on simple rest api</span><br><span class="line">  --slowms arg (=100)                   value of slow for profile and console </span><br><span class="line">                                        log</span><br><span class="line">  --profile arg                         0=off 1=slow, 2=all</span><br><span class="line">  --cpu                                 periodically show cpu and iowait </span><br><span class="line">                                        utilization</span><br><span class="line">  --sysinfo                             print some diagnostic system </span><br><span class="line">                                        information</span><br><span class="line">  --noIndexBuildRetry                   don'</span>t retry any index builds that were </span><br><span class="line">                                        interrupted by shutdown</span><br><span class="line">  --noscripting                         <span class="built_in">disable</span> scripting engine</span><br><span class="line">  --notablescan                         <span class="keyword">do</span> not allow table scans</span><br><span class="line">  --shutdown                            <span class="built_in">kill</span> a running server (<span class="keyword">for</span> init </span><br><span class="line">                                        scripts)</span><br><span class="line"></span><br><span class="line">Replication options:</span><br><span class="line">  --oplogSize arg                       size to use (<span class="keyword">in</span> MB) <span class="keyword">for</span> replication op </span><br><span class="line">                                        log. default is 5% of disk space (i.e. </span><br><span class="line">                                        large is good)</span><br><span class="line"></span><br><span class="line">Master/slave options (old; use replica sets instead):</span><br><span class="line">  --master                              master mode</span><br><span class="line">  --slave                               slave mode</span><br><span class="line">  --source arg                          when slave: specify master as </span><br><span class="line">                                        &lt;server:port&gt;</span><br><span class="line">  --only arg                            when slave: specify a single database </span><br><span class="line">                                        to replicate</span><br><span class="line">  --slavedelay arg                      specify delay (<span class="keyword">in</span> seconds) to be used </span><br><span class="line">                                        when applying master ops to slave</span><br><span class="line">  --autoresync                          automatically resync <span class="keyword">if</span> slave data is </span><br><span class="line">                                        stale</span><br><span class="line"></span><br><span class="line">Replica <span class="built_in">set</span> options:</span><br><span class="line">  --replSet arg                         arg is &lt;setname&gt;[/&lt;optionalseedhostlist</span><br><span class="line">                                        &gt;]</span><br><span class="line">  --replIndexPrefetch arg               specify index prefetching behavior (<span class="keyword">if</span> </span><br><span class="line">                                        secondary) [none|_id_only|all]</span><br><span class="line">  --enableMajorityReadConcern           enables majority <span class="built_in">read</span>Concern</span><br><span class="line"></span><br><span class="line">Sharding options:</span><br><span class="line">  --configsvr                           <span class="built_in">declare</span> this is a config db of a </span><br><span class="line">                                        cluster; default port 27019; default </span><br><span class="line">                                        dir /data/configdb</span><br><span class="line">  --configsvrMode arg                   Controls what config server protocol is</span><br><span class="line">                                        <span class="keyword">in</span> use. When <span class="built_in">set</span> to <span class="string">"sccc"</span> keeps server</span><br><span class="line">                                        <span class="keyword">in</span> legacy SyncClusterConnection mode </span><br><span class="line">                                        even when the service is running as a </span><br><span class="line">                                        replSet</span><br><span class="line">  --shardsvr                            <span class="built_in">declare</span> this is a shard db of a </span><br><span class="line">                                        cluster; default port 27018</span><br><span class="line"></span><br><span class="line">SSL options:</span><br><span class="line">  --sslOnNormalPorts                    use ssl on configured ports</span><br><span class="line">  --sslMode arg                         <span class="built_in">set</span> the SSL operation mode </span><br><span class="line">                                        (disabled|allowSSL|preferSSL|requireSSL</span><br><span class="line">                                        )</span><br><span class="line">  --sslPEMKeyFile arg                   PEM file <span class="keyword">for</span> ssl</span><br><span class="line">  --sslPEMKeyPassword arg               PEM file password</span><br><span class="line">  --sslClusterFile arg                  Key file <span class="keyword">for</span> internal SSL </span><br><span class="line">                                        authentication</span><br><span class="line">  --sslClusterPassword arg              Internal authentication key file </span><br><span class="line">                                        password</span><br><span class="line">  --sslCAFile arg                       Certificate Authority file <span class="keyword">for</span> SSL</span><br><span class="line">  --sslCRLFile arg                      Certificate Revocation List file <span class="keyword">for</span> </span><br><span class="line">                                        SSL</span><br><span class="line">  --sslDisabledProtocols arg            Comma separated list of TLS protocols </span><br><span class="line">                                        to <span class="built_in">disable</span> [TLS1_0,TLS1_1,TLS1_2]</span><br><span class="line">  --sslWeakCertificateValidation        allow client to connect without </span><br><span class="line">                                        presenting a certificate</span><br><span class="line">  --sslAllowConnectionsWithoutCertificates </span><br><span class="line">                                        allow client to connect without </span><br><span class="line">                                        presenting a certificate</span><br><span class="line">  --sslAllowInvalidHostnames            Allow server certificates to provide </span><br><span class="line">                                        non-matching hostnames</span><br><span class="line">  --sslAllowInvalidCertificates         allow connections to servers with </span><br><span class="line">                                        invalid certificates</span><br><span class="line">  --sslFIPSMode                         activate FIPS 140-2 mode at startup</span><br><span class="line"></span><br><span class="line">Storage options:</span><br><span class="line">  --storageEngine arg                   what storage engine to use - defaults </span><br><span class="line">                                        to wiredTiger <span class="keyword">if</span> no data files present</span><br><span class="line">  --dbpath arg                          directory <span class="keyword">for</span> datafiles - defaults to </span><br><span class="line">                                        /data/db</span><br><span class="line">  --directoryperdb                      each database will be stored <span class="keyword">in</span> a </span><br><span class="line">                                        separate directory</span><br><span class="line">  --noprealloc                          <span class="built_in">disable</span> data file preallocation - will </span><br><span class="line">                                        often hurt performance</span><br><span class="line">  --nssize arg (=16)                    .ns file size (<span class="keyword">in</span> MB) <span class="keyword">for</span> new databases</span><br><span class="line">  --quota                               limits each database to a certain </span><br><span class="line">                                        number of files (8 default)</span><br><span class="line">  --quotaFiles arg                      number of files allowed per db, implies</span><br><span class="line">                                        --quota</span><br><span class="line">  --smallfiles                          use a smaller default file size</span><br><span class="line">  --syncdelay arg (=60)                 seconds between disk syncs (0=never, </span><br><span class="line">                                        but not recommended)</span><br><span class="line">  --upgrade                             upgrade db <span class="keyword">if</span> needed</span><br><span class="line">  --repair                              run repair on all dbs</span><br><span class="line">  --repairpath arg                      root directory <span class="keyword">for</span> repair files - </span><br><span class="line">                                        defaults to dbpath</span><br><span class="line">  --journal                             <span class="built_in">enable</span> journaling</span><br><span class="line">  --nojournal                           <span class="built_in">disable</span> journaling (journaling is on by</span><br><span class="line">                                        default <span class="keyword">for</span> 64 bit)</span><br><span class="line">  --journalOptions arg                  journal diagnostic options</span><br><span class="line">  --journalCommitInterval arg           how often to group/batch commit (ms)</span><br><span class="line"></span><br><span class="line">WiredTiger options:</span><br><span class="line">  --wiredTigerCacheSizeGB arg           maximum amount of memory to allocate </span><br><span class="line">                                        <span class="keyword">for</span> cache; defaults to 1/2 of physical </span><br><span class="line">                                        RAM</span><br><span class="line">  --wiredTigerStatisticsLogDelaySecs arg (=0)</span><br><span class="line">                                        seconds to <span class="built_in">wait</span> between each write to a</span><br><span class="line">                                        statistics file <span class="keyword">in</span> the dbpath; 0 means </span><br><span class="line">                                        <span class="keyword">do</span> not <span class="built_in">log</span> statistics</span><br><span class="line">  --wiredTigerJournalCompressor arg (=snappy)</span><br><span class="line">                                        use a compressor <span class="keyword">for</span> <span class="built_in">log</span> records </span><br><span class="line">                                        [none|snappy|zlib]</span><br><span class="line">  --wiredTigerDirectoryForIndexes       Put indexes and data <span class="keyword">in</span> different </span><br><span class="line">                                        directories</span><br><span class="line">  --wiredTigerCollectionBlockCompressor arg (=snappy)</span><br><span class="line">                                        block compression algorithm <span class="keyword">for</span> </span><br><span class="line">                                        collection data [none|snappy|zlib]</span><br><span class="line">  --wiredTigerIndexPrefixCompression arg (=1)</span><br><span class="line">                                        use prefix compression on row-store </span><br><span class="line">                                        leaf pages</span><br></pre></td></tr></table></figure>
+<h2 id="创建服务文件"><a href="#创建服务文件" class="headerlink" title="创建服务文件"></a>创建服务文件</h2><ul>
+<li>在mongodb/bin目录下创建配置文件mongodb.conf<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@snails ~]<span class="comment"># cd mongodb/bin</span></span><br><span class="line">[root@snails bin]<span class="comment"># vi mongodb.conf</span></span><br><span class="line"><span class="comment">#数据文件存放目录</span></span><br><span class="line">dbpath = /data/mongodata</span><br><span class="line"><span class="comment">#日志文件存放目录</span></span><br><span class="line">logpath = /data/<span class="built_in">log</span>/mongolog/mongodb.log</span><br><span class="line"><span class="comment">#端口</span></span><br><span class="line">port = 27017</span><br><span class="line"><span class="comment">#以守护程序的方式启用，即在后台运行</span></span><br><span class="line">fork = <span class="literal">true</span>   </span><br><span class="line">nohttpinterface = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="启动服务-1"><a href="#启动服务-1" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># mongod --dbpath=/data/mongodata --logpath=/data/log/mongolog/mongodb.log --logappend --fork</span></span><br><span class="line"><span class="comment">#通过配置文件启动</span></span><br><span class="line">[root@snails bin]<span class="comment"># mongod -f /root/mongodb/bin/mongodb.conf</span></span><br><span class="line">netstat -tnlp | grep mongod</span><br><span class="line">tcp        0      0 0.0.0.0:27017           0.0.0.0:*               LISTEN      18093/mongod</span><br></pre></td></tr></table></figure>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># mongo</span></span><br><span class="line">MongoDB shell version: 3.2.7</span><br><span class="line">connecting to: <span class="built_in">test</span></span><br><span class="line">Server has startup warnings: </span><br><span class="line">2016-07-07T20:38:09.623+0800 I CONTROL  [initandlisten] ** WARNING: You are running this process as the root user, <span class="built_in">which</span> is not recommended.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/enabled is <span class="string">'always'</span>.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] **        We suggest setting it to <span class="string">'never'</span></span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/defrag is <span class="string">'always'</span>.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] **        We suggest setting it to <span class="string">'never'</span></span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] ** WARNING: soft rlimits too low. rlimits <span class="built_in">set</span> to 15084 processes, 65535 files. Number of processes should be at least 32767.5 : 0.5 <span class="built_in">times</span> number of files.</span><br><span class="line">2016-07-07T20:38:09.624+0800 I CONTROL  [initandlisten] </span><br><span class="line">&gt; show dbs</span><br><span class="line"><span class="built_in">local</span>  0.000GB</span><br><span class="line">&gt; quit()</span><br></pre></td></tr></table></figure>
+<h2 id="消除警告"><a href="#消除警告" class="headerlink" title="消除警告"></a>消除警告</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># vi /etc/rc.local</span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">test</span> <span class="_">-f</span> /sys/kernel/mm/transparent_hugepage/enabled; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">test</span> <span class="_">-f</span> /sys/kernel/mm/transparent_hugepage/defrag; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">ulimit</span> -u 65535</span><br><span class="line">[root@snails bin]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span></span><br><span class="line">[root@snails bin]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span></span><br></pre></td></tr></table></figure>
+<h2 id="文件限制数调整"><a href="#文件限制数调整" class="headerlink" title="文件限制数调整"></a>文件限制数调整</h2><p>修改配置文件 /etc/security/limits.conf，添加配置信息：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">* soft nofile 65535</span><br><span class="line">* hard nofile 65535</span><br><span class="line">* soft nproc 32000</span><br><span class="line">* hard nproc 32000</span><br></pre></td></tr></table></figure></p>
+<h2 id="停止mongodb"><a href="#停止mongodb" class="headerlink" title="停止mongodb"></a>停止mongodb</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">正常停止方法: <span class="built_in">kill</span>  -2 PID </span><br><span class="line">&gt;use  admin  </span><br><span class="line">&gt;db.shutdownServer();</span><br></pre></td></tr></table></figure>
+<h2 id="再次验证"><a href="#再次验证" class="headerlink" title="再次验证"></a>再次验证</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@snails bin]<span class="comment"># mongod -f /root/mongodb/bin/mongodb.conf</span></span><br><span class="line">about to fork child process, waiting until server is ready <span class="keyword">for</span> connections.</span><br><span class="line">forked process: 18229</span><br><span class="line">child process started successfully, parent exiting</span><br><span class="line">[root@snails bin]<span class="comment"># mongo</span></span><br><span class="line">MongoDB shell version: 3.2.7</span><br><span class="line">connecting to: <span class="built_in">test</span></span><br><span class="line">Server has startup warnings: </span><br><span class="line">2016-07-07T21:06:53.798+0800 I CONTROL  [initandlisten] ** WARNING: You are running this process as the root user, <span class="built_in">which</span> is not recommended.</span><br><span class="line">2016-07-07T21:06:53.798+0800 I CONTROL  [initandlisten] </span><br><span class="line">&gt; <span class="built_in">exit</span></span><br><span class="line"><span class="built_in">bye</span></span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/mongodb/">mongodb</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/07/08/mongo/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/07/08/mongo/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/07/07/redis/" title="在centos 7下源码编译redis 3.2.1" itemprop="url">在centos 7下源码编译redis 3.2.1</a>
   </h1>
   <p class="article-author">By
@@ -535,19 +788,19 @@
 			
 		
 			
-				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/分布式/" title="分布式">分布式<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+				<li><a href="/tags/mqtt/" title="mqtt">mqtt<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
+				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MQTT/" title="MQTT">MQTT<sup>1</sup></a></li>
 			
 		
 			
@@ -559,7 +812,15 @@
 			
 		
 			
+				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
 			
 		
 		</ul>

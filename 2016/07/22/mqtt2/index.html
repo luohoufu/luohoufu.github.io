@@ -1,0 +1,605 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>MQTT协议之连接和心跳介绍 | 技术资料分享小站</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Tonny Luo">
+    
+
+    
+    <meta name="description" content="序　  本篇会把连接(CONNECT)、心跳(PINGREQ/PINGRESP)、确认(CONNACK)、断开连接(DISCONNECT)和在一起进行介绍。
+
+在阅读本文之前推荐大家先读一下我的前两篇文章：MQTT协议及应用场景　MQTT协议之头部信息介绍
+
+CONNECT　　MQTT v3.1.1有关字符串部分采用的修改版的UTF-8编码，CONNECT可变头部中协议名称、消息体都是采用修改版的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MQTT协议之连接和心跳介绍">
+<meta property="og:url" content="http://luohoufu.github.io/2016/07/22/mqtt2/index.html">
+<meta property="og:site_name" content="技术资料分享小站">
+<meta property="og:description" content="序　  本篇会把连接(CONNECT)、心跳(PINGREQ/PINGRESP)、确认(CONNACK)、断开连接(DISCONNECT)和在一起进行介绍。
+
+在阅读本文之前推荐大家先读一下我的前两篇文章：MQTT协议及应用场景　MQTT协议之头部信息介绍
+
+CONNECT　　MQTT v3.1.1有关字符串部分采用的修改版的UTF-8编码，CONNECT可变头部中协议名称、消息体都是采用修改版的">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-26c5a25819047ea2.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-8778e76586514aba.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-ea0f65ee4936d3d5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-6b29dea2b202aa9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-a7f36620d0bc7b00.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-490c3e29296425ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-1666626df6e704a4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-15f7acebe773f738.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2016-07-22T03:46:33.762Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MQTT协议之连接和心跳介绍">
+<meta name="twitter:description" content="序　  本篇会把连接(CONNECT)、心跳(PINGREQ/PINGRESP)、确认(CONNACK)、断开连接(DISCONNECT)和在一起进行介绍。
+
+在阅读本文之前推荐大家先读一下我的前两篇文章：MQTT协议及应用场景　MQTT协议之头部信息介绍
+
+CONNECT　　MQTT v3.1.1有关字符串部分采用的修改版的UTF-8编码，CONNECT可变头部中协议名称、消息体都是采用修改版的">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1292466-26c5a25819047ea2.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+    
+    <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="技术资料分享小站" title="技术资料分享小站"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="技术资料分享小站">技术资料分享小站</a></h1>
+				<h2 class="blog-motto">点滴积累，细细回味。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">简介</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:luohoufu.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/22/mqtt2/" title="MQTT协议之连接和心跳介绍" itemprop="url">MQTT协议之连接和心跳介绍</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-22T03:46:06.000Z" itemprop="datePublished"> 发表于 2016-07-22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#序"><span class="toc-number">1.</span> <span class="toc-text">序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CONNECT"><span class="toc-number">2.</span> <span class="toc-text">CONNECT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#可变头部"><span class="toc-number">2.1.</span> <span class="toc-text">可变头部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#连接标志-Connect-Flags"><span class="toc-number">2.2.</span> <span class="toc-text">连接标志(Connect Flags)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Clean-Session"><span class="toc-number">2.3.</span> <span class="toc-text">Clean Session</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Flag"><span class="toc-number">2.4.</span> <span class="toc-text">Will Flag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Qos"><span class="toc-number">2.5.</span> <span class="toc-text">Will Qos</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Retain"><span class="toc-number">2.6.</span> <span class="toc-text">Will Retain</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#User-name-和-password-Flag"><span class="toc-number">2.7.</span> <span class="toc-text">User name 和 password Flag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Payload-消息体"><span class="toc-number">2.8.</span> <span class="toc-text">Payload/消息体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#心跳时间-Keep-Alive-timer"><span class="toc-number">2.9.</span> <span class="toc-text">心跳时间(Keep Alive timer)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Message编码"><span class="toc-number">2.10.</span> <span class="toc-text">Will Message编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#连接异常中断通知机制"><span class="toc-number">2.11.</span> <span class="toc-text">连接异常中断通知机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CONNACK"><span class="toc-number">3.</span> <span class="toc-text">CONNACK</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PINGREQ"><span class="toc-number">4.</span> <span class="toc-text">PINGREQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PINGRESP"><span class="toc-number">5.</span> <span class="toc-text">PINGRESP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DISCONNECT"><span class="toc-number">6.</span> <span class="toc-text">DISCONNECT</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="序"><a href="#序" class="headerlink" title="序"></a>序</h2><p>　  本篇会把连接(CONNECT)、心跳(PINGREQ/PINGRESP)、确认(CONNACK)、断开连接(DISCONNECT)和在一起进行介绍。</p>
+<blockquote>
+<p>在阅读本文之前推荐大家先读一下我的前两篇文章：<a href="http://www.jianshu.com/p/d726663efaa9" target="_blank" rel="external">MQTT协议及应用场景</a>　<a href="http://www.jianshu.com/p/7664baff32ce" target="_blank" rel="external">MQTT协议之头部信息介绍</a></p>
+</blockquote>
+<h2 id="CONNECT"><a href="#CONNECT" class="headerlink" title="CONNECT"></a>CONNECT</h2><p>　　MQTT v3.1.1有关字符串部分采用的修改版的UTF-8编码，CONNECT可变头部中协议名称、消息体都是采用修改版的UTF-8编码。前面基本上可变头部内容不多，下面是一个较为完整的CONNECT消息结构：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-26c5a25819047ea2.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt connect消息结构"></p>
+<blockquote>
+<p><strong>协议变化</strong><br>MQTT 3.1.1中CONNECT消息可变头部协议名称MQIsdp被改为MQTT。<br>MQTT 3.1.1中所有字符串明确规定使用UTF-8编码，包括客户端标识符(Client Identifier)。<br>MQTT 3.1.1中针对客户端标识符（ client identifier）限制由原来的23个字节上限改为65535个字节。<br>MQTT 3.1.1中CONNECT消息可变头部协议版本号，由<strong>0x03变成了0x04 QoS 0类型PUBLISH消息DUP标记必须被设置为0</strong>。<br>MQTT 3.1.1中MQTT Over WebSocket 被定义，互联网地址编码分配机构（Internet Assigned Numbers Authority）分配标识符为mqtt。虽在MQTT 3.1规范通篇没有提到WebSocket，但因其二进制属性可以很容易的在WebSocket通道传输。</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><strong>术语变化</strong></p>
+<ul>
+<li><em>MQTT代理 -&gt; MQTT服务器（MQTT Broker is now MQTT Server）</em></li>
+<li><em>消息ID -&gt; 包ID（Message ID is now Packet ID）</em></li>
+<li><em>消息类型 -&gt; 包类型（Message Type is now Packet Type）</em></li>
+<li><em>主题路径 -&gt; 主题名称（Subscribe and Unsubscribe take Topic Paths, rather than Topic names）</em></li>
+<li><em>以前在固定头部，现在在包类型中( Flags in the fixed header are now specific to the packet type</em></li>
+<li><em>0字节保留信息需要清除 （A zero byte retained message MUST NOT be stored as a retained message on the Server ）</em></li>
+</ul>
+</blockquote>
+<h3 id="可变头部"><a href="#可变头部" class="headerlink" title="可变头部"></a>可变头部</h3><p>　　协议名称和协议版本都是固定的。</p>
+<h3 id="连接标志-Connect-Flags"><a href="#连接标志-Connect-Flags" class="headerlink" title="连接标志(Connect Flags)"></a>连接标志(Connect Flags)</h3><p>　　一个字节表示，除了第1位是保留未使用，其它7位都具有不同含义。业务上很重要，对消息总体流程影响很大，需要牢记。</p>
+<h3 id="Clean-Session"><a href="#Clean-Session" class="headerlink" title="Clean Session"></a>Clean Session</h3><p>　　0，表示如果订阅的客户机断线了，要保存为其要推送的消息（QoS为1和QoS为2），若其重新连接时，需将这些消息推送（若客户端长时间不连接，需要设置一个过期值）。 1，断线服务器即清理相关信息，重新连接上来之后，会再次订阅。</p>
+<h3 id="Will-Flag"><a href="#Will-Flag" class="headerlink" title="Will Flag"></a>Will Flag</h3><p>　　定义了客户端（没有主动发送DISCONNECT消息）出现网络异常导致连接中断的情况下，服务器需要做的一些措施。<br>　　简而言之，就是客户端预先定义好，在自己异常断开的情况下，所留下的最后遗愿（Last Will），也称之为遗嘱（Testament）。 这个遗嘱就是一个由客户端预先定义好的主题和对应消息，附加在CONNECT的可变头部中，在客户端连接出现异常的情况下，由服务器主动发布此消息。<br>　　只有在Will Flag位为1时，Will Qos和Will Retain才会被读取，此时消息体payload中要出现Will Topic和Will Message具体内容，否则，Will QoS和Will Retain值会被忽略掉。　</p>
+<h3 id="Will-Qos"><a href="#Will-Qos" class="headerlink" title="Will Qos"></a>Will Qos</h3><p>　　两位表示，和PUBLISH消息固定头部的QoS level含义一样。这里先略过，到PUBLISH消息再回过头来看看，会更明白些。若标识了Will Flag值为1，那么Will QoS就会生效，否则会被忽略掉。</p>
+<h3 id="Will-Retain"><a href="#Will-Retain" class="headerlink" title="Will Retain"></a>Will Retain</h3><p>　　如果设置Will Flag，Will Retain标志就是有效的，否则它将被忽略。当客户端意外断开服务器发布其Will Message之后，服务器是否应该继续保存。这个属性和PUBLISH固定头部的RETAIN标志含义一样，这里先略过。</p>
+<h3 id="User-name-和-password-Flag"><a href="#User-name-和-password-Flag" class="headerlink" title="User name 和 password Flag"></a>User name 和 password Flag</h3><p>　　用于授权，两者要么为0要么为1，否则都是无效。都为0，表示客户端可自由连接/订阅，都为1，表示连接/订阅需要授权。</p>
+<h3 id="Payload-消息体"><a href="#Payload-消息体" class="headerlink" title="Payload/消息体"></a>Payload/消息体</h3><p>　　消息体定义的消息顺序（如上表所示），约定俗成，不得更改，否则将可能引起混乱。<br>　　若Will Flag值为0，那么在payload中，Client Identifer后面就不会存在Will Topic和Will Message内容。<br>　　若User Name和Password都为0，意味着Payload/消息体中，找不到User Name和password的值，就算有，也是无效。标志决定着是否读取与否。</p>
+<h3 id="心跳时间-Keep-Alive-timer"><a href="#心跳时间-Keep-Alive-timer" class="headerlink" title="心跳时间(Keep Alive timer)"></a>心跳时间(Keep Alive timer)</h3><p>　　以秒为单位，定义服务器端从客户端接收消息的最大时间间隔。一般应用服务会在业务层次检测客户端网络是否连接，不是TCP/IP协议层面的心跳机制(比如开启SOCKET的SO_KEEPALIVE选项)。 一般来讲，在一个心跳间隔内，客户端发送一个PINGREQ消息到服务器，服务器返回PINGRESP消息，完成一次心跳交互，继而等待下一轮。若客户端没有收到心跳反馈，会关闭掉TCP/IP端口连接，离线。 16位两个字节，可看做一个无符号的short类型值。最大值，2^16-1 = 65535秒 = 18小时。最小值可以为0，表示客户端不断开。一般设为几分钟，比如微信心跳周期为300秒。</p>
+<h3 id="Will-Message编码"><a href="#Will-Message编码" class="headerlink" title="Will Message编码"></a>Will Message编码</h3><p>　　Will Message在CONNECT Payload/息体中，使用UTF-8编码。假设内容为“abcd”，大概如下：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-8778e76586514aba.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt connect will message"></p>
+<blockquote>
+<p>注：PUBLISH的Payload/消息体中以二进制编码保存</p>
+</blockquote>
+<p>　　在某一时间点客户端异常关闭会触发服务器PUBLISH此消息。那么服务器会直接把byte3-byte6之间字符取出，保存为二进制，附加到PUBLISH消息体中，大概存储如下：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-ea0f65ee4936d3d5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt publish will message"></p>
+<h3 id="连接异常中断通知机制"><a href="#连接异常中断通知机制" class="headerlink" title="连接异常中断通知机制"></a>连接异常中断通知机制</h3><p>　　CONNECT消息一旦设置在可变头部设置了Will flag标记，那就启用了Last-Will-And-Testament特性，此特性很赞。<br>　　一旦客户端出现异常中断，便会触发服务器发布Will Message消息到Will Topic主题上去，通知Will Topic订阅者，对方因异常退出。</p>
+<h2 id="CONNACK"><a href="#CONNACK" class="headerlink" title="CONNACK"></a>CONNACK</h2><p>　　收到CONNECT消息之后，服务器应该返回一个CONNACK消息作为响应：</p>
+<ul>
+<li>若客户端绕过CONNECT消息直接发送其它类型消息，服务器应关闭此非法连接 若客户端发送CONNECT之后未收到CONNACT，需要关闭当前连接，然后重新连接</li>
+<li>相同Client ID客户端已连接到服务器，先前客户端必须断开连接后，服务器才能完成新的客户端CONNECT连接 客户端发送无效非法CONNECT消息，服务器需要关闭。<br>　　一个完整的CONNACK消息大致如下：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-6b29dea2b202aa9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="connack"><br>　　可变头部第一个字节为保留，无甚用处。第二个字节为连接握手返回码：<br><img src="http://upload-images.jianshu.io/upload_images/1292466-a7f36620d0bc7b00.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="connack response code"><br>　　只有0-5目前被使用到，其他值有待日后使用。一般返回值为0x00，表示连接建立。非法的请求，需要返回相应的数值。<br>　　从上面看出，一个CONNACK，四个字节表示。一个正常的CONNACK消息实际内容可能如下：<br><code>0x20 0x02 0x00 0x00</code>　<br>　　若是在私有协议中，两个字节就足够了。很多时候，客户端和服务器端在没有消息传递时，会一直保持着连接。虽然不能依靠TCP心跳机制（比如SO_KEEPALIVE选项），业务层面定义心跳机制，会让连接状态检测、控制更为直观。</li>
+</ul>
+<h2 id="PINGREQ"><a href="#PINGREQ" class="headerlink" title="PINGREQ"></a>PINGREQ</h2><p>　　由客户端发送到服务器端，证明自己还在一直连接着呢。两个字节，固定值。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-490c3e29296425ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="PINGREQ"><br>　　客户端会在一个心跳周期内发送一条PINGREQ消息到服务器端。心跳频率在CONNECT可变头部“Keep Alive Timer”中定义时间，单位为秒，无符号16位short表示。</p>
+<h2 id="PINGRESP"><a href="#PINGRESP" class="headerlink" title="PINGRESP"></a>PINGRESP</h2><p>　　服务器收到PINGREQ请求之后，会立即响应一个两个字节固定格式的PINGRESP消息。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-1666626df6e704a4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="PINGRESP"><br>　　服务器一般若在1.5倍的心跳周期内接收不到客户端发送的PINGREQ，可考虑关闭客户端的连接描述符。此时的关闭连接的行为和接收到客户端发送DISCONNECT消息的处理行为一致，但对客户端的订阅不会产生影响（不会清除客户端订阅数据），这个需要牢记。<br>　　若客户端发送PINGREQ之后的一个心跳周期内接收不到PINGRESP消息，可考虑关闭TCP/IP套接字连接。</p>
+<h2 id="DISCONNECT"><a href="#DISCONNECT" class="headerlink" title="DISCONNECT"></a>DISCONNECT</h2><p>客户端主动发送到服务器端，表明即将关闭TCP/IP连接。此时要求服务器要完整、干净的进行断开处理，不能仅仅类似于关闭连接描述符类似草草处理之。 需要两个字节，值固定。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-15f7acebe773f738.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="DISCONNECT"><br>　　服务器要根据先前此客户端在发送CONNECT消息可变头部Connect flag中的“Clean session flag”所设置值。<br>复习一下：</p>
+<ol>
+<li>值为0，服务器必须在客户端断开之后继续存储/保持客户端的订阅状态。这些状态包括：<ul>
+<li><em>存储订阅的消息QoS1和QoS2消息</em></li>
+<li><em>正在发送消息期间连接丢失导致发送失败的消息。</em></li>
+<li><em>以便当客户端重新连接时以上消息可以被重新传递。</em></li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>值为1，服务器需要立刻清理连接状态数据。</li>
+</ul>
+<blockquote>
+<p>注意：服务器在接收到客户端发送的DISCONNECT消息之后，需要主动关闭TCP/IP连接。</p>
+</blockquote>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/mqtt/">mqtt</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://luohoufu.github.io/2016/07/22/mqtt2/" data-title="MQTT协议之连接和心跳介绍 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2016/07/22/mqtt1/"  title="MQTT协议之头部信息介绍">
+ <strong>下一篇：</strong><br/> 
+ <span>MQTT协议之头部信息介绍
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/22/mqtt2/" data-title="MQTT协议之连接和心跳介绍" data-url="http://luohoufu.github.io/2016/07/22/mqtt2/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#序"><span class="toc-number">1.</span> <span class="toc-text">序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CONNECT"><span class="toc-number">2.</span> <span class="toc-text">CONNECT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#可变头部"><span class="toc-number">2.1.</span> <span class="toc-text">可变头部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#连接标志-Connect-Flags"><span class="toc-number">2.2.</span> <span class="toc-text">连接标志(Connect Flags)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Clean-Session"><span class="toc-number">2.3.</span> <span class="toc-text">Clean Session</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Flag"><span class="toc-number">2.4.</span> <span class="toc-text">Will Flag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Qos"><span class="toc-number">2.5.</span> <span class="toc-text">Will Qos</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Retain"><span class="toc-number">2.6.</span> <span class="toc-text">Will Retain</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#User-name-和-password-Flag"><span class="toc-number">2.7.</span> <span class="toc-text">User name 和 password Flag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Payload-消息体"><span class="toc-number">2.8.</span> <span class="toc-text">Payload/消息体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#心跳时间-Keep-Alive-timer"><span class="toc-number">2.9.</span> <span class="toc-text">心跳时间(Keep Alive timer)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Will-Message编码"><span class="toc-number">2.10.</span> <span class="toc-text">Will Message编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#连接异常中断通知机制"><span class="toc-number">2.11.</span> <span class="toc-text">连接异常中断通知机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CONNACK"><span class="toc-number">3.</span> <span class="toc-text">CONNACK</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PINGREQ"><span class="toc-number">4.</span> <span class="toc-text">PINGREQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PINGRESP"><span class="toc-number">5.</span> <span class="toc-text">PINGRESP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DISCONNECT"><span class="toc-number">6.</span> <span class="toc-text">DISCONNECT</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github 名片</p>
+<div class="github-card" data-github="luohoufu" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/github/" title="github">github<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/分布式/" title="分布式">分布式<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mqtt/" title="mqtt">mqtt<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MQTT/" title="MQTT">MQTT<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.infoq.com/cn/" target="_blank" title="一个精英文章汇集的站点">InfoQ</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/，常去看看" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.oschina.net/" target="_blank" title="关注国内开源">开源中国</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://segmentfault.com/" target="_blank" title="今天你又在开发中遇到了什么问题">SegmentFault</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 爱编程的小伙 <br/>
+			不想做程序猿的架构师不是好的产品经理</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/u/5666590322" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/luohoufu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/luohoufu" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		<a href="https://www.douban.com/people/142251737" target="_blank" class="icon-douban" title="豆瓣"></a>
+		
+		
+		
+		
+		<a href="mailto:luohoufu@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
+		
+		<a href="/about" target="_blank" title="Tonny Luo">Tonny Luo</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tonnyluo"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?dd09496f0b593221f4326d64011cab";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1259855911'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1259855911' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

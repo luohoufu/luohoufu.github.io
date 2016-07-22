@@ -1,0 +1,575 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>MQTT协议之头部信息介绍 | 技术资料分享小站</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Tonny Luo">
+    
+
+    
+    <meta name="description" content="前言　　MQTT（Message Queue Telemetry Transport）,遥测传输协议，提供订阅/发布模式，更为简约、轻量，易于使用，针对受限环境（带宽低、网络延迟高、网络通信不稳定），可以简单概括为物联网打造，官方总结特点如下：1234567891.使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合。2. 对负载内容屏蔽的消息传输。3. 使用 TCP/IP 提供网络连接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MQTT协议之头部信息介绍">
+<meta property="og:url" content="http://luohoufu.github.io/2016/07/22/mqtt1/index.html">
+<meta property="og:site_name" content="技术资料分享小站">
+<meta property="og:description" content="前言　　MQTT（Message Queue Telemetry Transport）,遥测传输协议，提供订阅/发布模式，更为简约、轻量，易于使用，针对受限环境（带宽低、网络延迟高、网络通信不稳定），可以简单概括为物联网打造，官方总结特点如下：1234567891.使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合。2. 对负载内容屏蔽的消息传输。3. 使用 TCP/IP 提供网络连接">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-e8960a4f7164a0cb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-9ef55ffbc89dbf39.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-2333644c39b353f2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-365abfb458b5b75b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-8a3076a99db89f82.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2016-07-22T03:46:02.274Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MQTT协议之头部信息介绍">
+<meta name="twitter:description" content="前言　　MQTT（Message Queue Telemetry Transport）,遥测传输协议，提供订阅/发布模式，更为简约、轻量，易于使用，针对受限环境（带宽低、网络延迟高、网络通信不稳定），可以简单概括为物联网打造，官方总结特点如下：1234567891.使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合。2. 对负载内容屏蔽的消息传输。3. 使用 TCP/IP 提供网络连接">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1292466-e8960a4f7164a0cb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+    
+    <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="技术资料分享小站" title="技术资料分享小站"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="技术资料分享小站">技术资料分享小站</a></h1>
+				<h2 class="blog-motto">点滴积累，细细回味。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">简介</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:luohoufu.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/22/mqtt1/" title="MQTT协议之头部信息介绍" itemprop="url">MQTT协议之头部信息介绍</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-22T03:45:32.000Z" itemprop="datePublished"> 发表于 2016-07-22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#协议介绍"><span class="toc-number">2.</span> <span class="toc-text">协议介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#固定头部"><span class="toc-number">2.1.</span> <span class="toc-text">固定头部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#消息类型"><span class="toc-number">2.2.</span> <span class="toc-text">消息类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DUP-flag（打开标志）"><span class="toc-number">2.3.</span> <span class="toc-text">DUP flag（打开标志）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#QoS-Quality-of-Service-服务质量"><span class="toc-number">2.4.</span> <span class="toc-text">QoS(Quality of Service,服务质量)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RETAIN-保持"><span class="toc-number">2.5.</span> <span class="toc-text">RETAIN(保持)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Remaining-Length（剩余长度）"><span class="toc-number">2.6.</span> <span class="toc-text">Remaining Length（剩余长度）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#可变头部"><span class="toc-number">2.7.</span> <span class="toc-text">可变头部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Playload-消息体-负荷"><span class="toc-number">2.8.</span> <span class="toc-text">Playload/消息体/负荷</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#消息标识符-消息ID"><span class="toc-number">2.9.</span> <span class="toc-text">消息标识符/消息ID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#小结"><span class="toc-number">2.10.</span> <span class="toc-text">小结</span></a></li></ol></li></ol>
+		
+		</div>
+		
+		<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>　　MQTT（Message Queue Telemetry Transport）,遥测传输协议，提供订阅/发布模式，更为简约、轻量，易于使用，针对受限环境（带宽低、网络延迟高、网络通信不稳定），可以简单概括为物联网打造，官方总结特点如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">1.使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合。</span><br><span class="line">2. 对负载内容屏蔽的消息传输。</span><br><span class="line">3. 使用 TCP/IP 提供网络连接。</span><br><span class="line">4. 有三种消息发布服务质量：</span><br><span class="line">    “至多一次”，消息发布完全依赖底层 TCP/IP 网络。会发生消息丢失或重复。这一级别可用于如下情况，环境传感器数据，丢失一次读记录无所谓，因为不久后还会有第二次发送。</span><br><span class="line">    “至少一次”，确保消息到达，但消息重复可能会发生。</span><br><span class="line">    “只有一次”，确保消息到达一次。这一级别可用于如下情况，在计费系统中，消息重复或丢失会导致不正确的结果。</span><br><span class="line">5. 小型传输，开销很小（固定长度的头部是 2 字节），协议交换最小化，以降低网络流量。</span><br><span class="line">6. 使用 Last Will 和 Testament 特性通知有关各方客户端异常中断的机制。</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>　　在沉寂了四年之后， <a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html" target="_blank" rel="external">MQTT 3.1.1规范</a> 于2014年10月30号正式发布，与此同时MQTT 3.1.1已成为OASIS（结构化信息标准促进组织）开放物联网消息传递协议标准（ <a href="https://www.oasis-open.org/standards#mqttv3.1.1" target="_blank" rel="external">连接1</a> <a href="https://www.oasis-open.org/news/announcements/mqtt-version-3-1-1-becomes-an-oasis-standard" target="_blank" rel="external">连接2</a> ），换种说法就是MQTT 3.1.1已升级为国际物联网标准。<br>　　细心的朋友一定会发现，原来<a href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html" target="_blank" rel="external">MQTT 3.1规范</a>是IBM的协议，到了<a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html" target="_blank" rel="external">MQTT 3.1.1规范</a> 后就变成了OASIS的标准。<br>　　中文版的文档查看以下的链接：<br>　　<a href="https://mcxiaoke.gitbooks.io/mqtt-cn/content/" target="_blank" rel="external">MQTT协议v3.1中文版</a><br>　　<a href="http://blog.mcxiaoke.com/mqtt/protocol/MQTT-3.1.1-CN.html" target="_blank" rel="external">MQTT协议v3.1.1中文版</a></p>
+</blockquote>
+<h2 id="协议介绍"><a href="#协议介绍" class="headerlink" title="协议介绍"></a>协议介绍</h2><h3 id="固定头部"><a href="#固定头部" class="headerlink" title="固定头部"></a>固定头部</h3><p>　　固定头部，使用两个字节，共16位：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-e8960a4f7164a0cb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 固定头部"><br><strong>Byte 1</strong>　消息类型和标志字段，消息类型(4-7)，使用4位二进制表示，可代表16种消息类型。<br><strong>Byte 2</strong>　剩余长度字段（至少1个字节，最多4个字节），采用<strong><em>big-endian</em></strong>模式存储。</p>
+<h3 id="消息类型"><a href="#消息类型" class="headerlink" title="消息类型"></a>消息类型</h3><p><img src="http://upload-images.jianshu.io/upload_images/1292466-9ef55ffbc89dbf39.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 消息类型"></p>
+<blockquote>
+<p>除去0和15位置属于保留待用，共14种消息事件类型。</p>
+</blockquote>
+<h3 id="DUP-flag（打开标志）"><a href="#DUP-flag（打开标志）" class="headerlink" title="DUP flag（打开标志）"></a>DUP flag（打开标志）</h3><p>保证消息可靠传输，默认为0，只占用一个字节，表示第一次发送。不能用于检测消息重复发送等。只适用于客户端或服务器端尝试重发PUBLISH, PUBREL, SUBSCRIBE 或 UNSUBSCRIBE消息，注意需要满足以下条件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">当 QoS &gt; 0</span><br><span class="line">消息需要回复确认</span><br></pre></td></tr></table></figure></p>
+<p>此时，在可变头部需要包含消息ID。当值为1时，表示当前消息先前已经被传送过。</p>
+<h3 id="QoS-Quality-of-Service-服务质量"><a href="#QoS-Quality-of-Service-服务质量" class="headerlink" title="QoS(Quality of Service,服务质量)"></a>QoS(Quality of Service,服务质量)</h3><p>　　使用两个二进制表示PUBLISH类型消息：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-2333644c39b353f2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 服务质量"></p>
+<h3 id="RETAIN-保持"><a href="#RETAIN-保持" class="headerlink" title="RETAIN(保持)"></a>RETAIN(保持)</h3><p>　　仅针对PUBLISH消息。不同值，不同含义：<br>　　<strong>1</strong>：表示发送的消息需要一直持久保存（不受服务器重启影响），不但要发送给当前的订阅者，并且以后新来的订阅了此Topic name的订阅者会马上得到推送。</p>
+<blockquote>
+<p>备注：新来乍到的订阅者，只会取出最新的一个RETAIN flag = 1的消息推送。</p>
+</blockquote>
+<p>　　<strong>0</strong>：仅仅为当前订阅者推送此消息。<br>假如服务器收到一个空消息体(zero-length payload)、RETAIN = 1、已存在Topic name的PUBLISH消息，服务器可以删除掉对应的已被持久化的PUBLISH消息。</p>
+<h3 id="Remaining-Length（剩余长度）"><a href="#Remaining-Length（剩余长度）" class="headerlink" title="Remaining Length（剩余长度）"></a>Remaining Length（剩余长度）</h3><p>　　在当前消息中剩余的byte(字节)数，包含可变头部和负荷(称之为内容/body，更为合适)。单个字节最大值：01111111，16进制：0x7F，10进制为127。单个字节为什么不能是11111111（0xFF）呢？因为MQTT协议规定，第八位（最高位）若为1，则表示还有后续字节存在。<br>　　同时MQTT协议最多允许4个字节表示剩余长度。那么最大长度为：0xFF,0xFF,0xFF,0x7F。<br><strong>二进制表示为：</strong>11111111,11111111,11111111,01111111<br><strong>十进制：</strong>268435455 byte=261120KB=256MB=0.25GB<br><strong>四个字节之间值的范围：</strong></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-365abfb458b5b75b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 剩余长度"></p>
+<h3 id="可变头部"><a href="#可变头部" class="headerlink" title="可变头部"></a>可变头部</h3><p>　　固定头部仅定义了消息类型和一些标志位，一些消息的元数据，需要放入可变头部中。<strong>可变头部内容字节长度 + Playload/负荷字节长度 = 剩余长度</strong>，这个是需要牢记的。可变头部，包含了协议名称，版本号，连接标志，用户授权，心跳时间等内容，这部分和后面要讲到的CONNECT消息类型，有重复，暂时略过。</p>
+<h3 id="Playload-消息体-负荷"><a href="#Playload-消息体-负荷" class="headerlink" title="Playload/消息体/负荷"></a>Playload/消息体/负荷</h3><p>　　消息体主要是为配合固定/可变头部命令（比如CONNECT可变头部User name标记若为1则需要在消息体中附加用户名称字符串）而存在。<br>　　CONNECT/SUBSCRIBE/SUBACK/PUBLISH等消息有消息体。PUBLISH的消息体以二进制形式对待。<br>　　请记住MQTT协议只允许在PUBLISH类型消息体中使用<strong><em>自定义</em></strong>特性，在固定/可变头部想加入自定义私有特性，就免了吧。这也是为了协议免于流于形式，变得很分裂也为了兼顾现有客户端等。比如支持压缩等，那就可以在Playload中定义数据支持，在应用中进行读取处理。这部分会在后面的文章中详细论述。</p>
+<h3 id="消息标识符-消息ID"><a href="#消息标识符-消息ID" class="headerlink" title="消息标识符/消息ID"></a>消息标识符/消息ID</h3><p>　　<strong><em>固定头中的QoS level标志值为1或2时</em></strong>才会在：PUBLISH，PUBACK，PUBREC，PUBREL，PUBCOMP，SUBSCRIBE，SUBACK，UNSUBSCRIBE，UNSUBACK等消息的可变头中出现。<br>　　一个16位无符号位的short类型值（值不能为 0，0做保留作为无效的消息ID），仅仅要求在一个特定方向（服务器发往客户端为一个方向，客户端发送到服务器端为另一个方向）的通信消息中必须唯一。比如客户端发往服务器，有可能存在服务器发往客户端会同时存在重复，但不碍事。<br>　　可变头部中，需要两个字节的顺序是MSB(Most Significant Bit) LSB(Last/Least Significant Bit)，翻译成中文就是，最高有效位，最低有效位。最高有效位在最低有效位左边/上面，表示这是一个大端字节/网络字节序，符合人的阅读习惯，高位在最左边。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1292466-8a3076a99db89f82.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="mqtt 消息标识符"></p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>　　掌握固定头部的QoS level、RETAIN标记、可变头部的Connect flags作用和意义，对总体理解MQTT作用很大。下面列举了一些常用的操作：<br><strong>CONNECT</strong><br>　　TCP连接建立完毕后，Client向Server发出一个Request。<br>如果一段时间内接收不到Server的Response，则关闭socket，重新建立一个session连接。<br>　　如果一个ClientID已经与服务器连接，则持有同样ClientID的旧有连接必须由服务器关闭后，新建立才能建立。<br><strong>CONNACK</strong><br>　　Server发出Response响应。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0x00 Connection Accepted</span><br><span class="line">0x01 Connection Refused: unacceptable protocol version</span><br><span class="line">0x02 Connection Refused: identifier rejected</span><br><span class="line">0x03 Connection Refused: server unavailable</span><br><span class="line">0x04 Connection Refused: bad user name or password</span><br><span class="line">0x05 Connection Refused: not authorized</span><br></pre></td></tr></table></figure></p>
+<p><strong>PUBLISH 发布消息</strong><br>　　Client/Servier均可以进行PUBLISH。<br>　　publish message 应该包含一个TopicName(Subject/Channel)，即订阅关键词。</p>
+<blockquote>
+<p><strong><em>关于Topic通配符</em></strong></p>
+<ul>
+<li>/：用来表示层次，比如a/b，a/b/c。</li>
+<li>#：表示匹配&gt;=0个层次，比如a/#就匹配a/，a/b，a/b/c。<br>单独的一个#表示匹配所有。不允许 a#和a/#/c。</li>
+<li>+：表示匹配一个层次，例如a/+匹配a/b，a/c，不匹配a/b/c。<br>单独的一个+是允许的，a+不允许，a/+/b不允许</li>
+</ul>
+</blockquote>
+<p><strong>PUBACK 发布消息后的确认</strong><br>　　<strong><em>QoS=1时</em></strong>，Server向Client发布该确认（Client收到确认后删除），订阅者向Server发布确认。<br><strong>PUBREC / PUBREL / PUBCOMP</strong><br>　　<strong><em>QoS=2时</em></strong><br>　　1. Server-&gt;Client发布PUBREC（已收到）；<br>　　2. Client-&gt;Server发布PUBREL（已释放）；<br>　　3. Server-&gt;Client发布PUBCOMP（已完成），Client删除msg；订阅者也会向Server发布类似过程确认。<br><strong>PINGREQ / PINGRES 心跳</strong><br>　　Client有责任发送KeepAliveTime时长告诉给Server。在一个时长内，发送PINGREQ，Server发送PINGRES确认。<br> 　　Server在1.5个时长内未收到PINGREQ，就断开连接。<br>　　Client在1个时长内未收到PINGRES，断开连接。<br>　　一般来说，时长设置为几个分钟。最大18小时，0表示一直未断开。<br><strong>Clean Session</strong><br>　　如果为false(flag=0)，Client断开连接后，Server应该保存Client的订阅信息。<br>　　如果为true(flag=1)，表示Server应该立刻丢弃任何会话状态信息。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/mqtt/">mqtt</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://luohoufu.github.io/2016/07/22/mqtt1/" data-title="MQTT协议之头部信息介绍 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/22/mqtt2/" title="MQTT协议之连接和心跳介绍">
+  <strong>上一篇：</strong><br/>
+  <span>
+  MQTT协议之连接和心跳介绍</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/07/22/mqtt/"  title="MQTT协议及应用场景">
+ <strong>下一篇：</strong><br/> 
+ <span>MQTT协议及应用场景
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/22/mqtt1/" data-title="MQTT协议之头部信息介绍" data-url="http://luohoufu.github.io/2016/07/22/mqtt1/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#协议介绍"><span class="toc-number">2.</span> <span class="toc-text">协议介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#固定头部"><span class="toc-number">2.1.</span> <span class="toc-text">固定头部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#消息类型"><span class="toc-number">2.2.</span> <span class="toc-text">消息类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DUP-flag（打开标志）"><span class="toc-number">2.3.</span> <span class="toc-text">DUP flag（打开标志）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#QoS-Quality-of-Service-服务质量"><span class="toc-number">2.4.</span> <span class="toc-text">QoS(Quality of Service,服务质量)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RETAIN-保持"><span class="toc-number">2.5.</span> <span class="toc-text">RETAIN(保持)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Remaining-Length（剩余长度）"><span class="toc-number">2.6.</span> <span class="toc-text">Remaining Length（剩余长度）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#可变头部"><span class="toc-number">2.7.</span> <span class="toc-text">可变头部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Playload-消息体-负荷"><span class="toc-number">2.8.</span> <span class="toc-text">Playload/消息体/负荷</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#消息标识符-消息ID"><span class="toc-number">2.9.</span> <span class="toc-text">消息标识符/消息ID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#小结"><span class="toc-number">2.10.</span> <span class="toc-text">小结</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github 名片</p>
+<div class="github-card" data-github="luohoufu" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/github/" title="github">github<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/分布式/" title="分布式">分布式<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mqtt/" title="mqtt">mqtt<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MQTT/" title="MQTT">MQTT<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.infoq.com/cn/" target="_blank" title="一个精英文章汇集的站点">InfoQ</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/，常去看看" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.oschina.net/" target="_blank" title="关注国内开源">开源中国</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://segmentfault.com/" target="_blank" title="今天你又在开发中遇到了什么问题">SegmentFault</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 爱编程的小伙 <br/>
+			不想做程序猿的架构师不是好的产品经理</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/u/5666590322" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/luohoufu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/luohoufu" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		<a href="https://www.douban.com/people/142251737" target="_blank" class="icon-douban" title="豆瓣"></a>
+		
+		
+		
+		
+		<a href="mailto:luohoufu@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
+		
+		<a href="/about" target="_blank" title="Tonny Luo">Tonny Luo</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tonnyluo"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?dd09496f0b593221f4326d64011cab";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1259855911'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1259855911' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

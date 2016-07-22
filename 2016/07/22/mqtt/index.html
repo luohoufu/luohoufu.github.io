@@ -1,0 +1,668 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>MQTT协议及应用场景 | 技术资料分享小站</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Tonny Luo">
+    
+
+    
+    <meta name="description" content="背景　　近来公司需要做一个即时通讯工具，选型用MQTT协议来做。于是仔细搜集MQTT相关的了一些资料，并分享出来供大家参考。
+MQTT简介　　MQTT（Message Queuing Telemetry Transport，消息队列遥测传输）是IBM开发的一个即时通讯协议，它是一种轻量级的、基于代理的“发布/订阅”模式的消息传输协议。其具有协议简洁、小巧、可扩展性强、省流量、省电等优点，而且已经有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MQTT协议及应用场景">
+<meta property="og:url" content="http://luohoufu.github.io/2016/07/22/mqtt/index.html">
+<meta property="og:site_name" content="技术资料分享小站">
+<meta property="og:description" content="背景　　近来公司需要做一个即时通讯工具，选型用MQTT协议来做。于是仔细搜集MQTT相关的了一些资料，并分享出来供大家参考。
+MQTT简介　　MQTT（Message Queuing Telemetry Transport，消息队列遥测传输）是IBM开发的一个即时通讯协议，它是一种轻量级的、基于代理的“发布/订阅”模式的消息传输协议。其具有协议简洁、小巧、可扩展性强、省流量、省电等优点，而且已经有">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1292466-4eade55a8346ec75.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2016-07-22T03:45:28.289Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MQTT协议及应用场景">
+<meta name="twitter:description" content="背景　　近来公司需要做一个即时通讯工具，选型用MQTT协议来做。于是仔细搜集MQTT相关的了一些资料，并分享出来供大家参考。
+MQTT简介　　MQTT（Message Queuing Telemetry Transport，消息队列遥测传输）是IBM开发的一个即时通讯协议，它是一种轻量级的、基于代理的“发布/订阅”模式的消息传输协议。其具有协议简洁、小巧、可扩展性强、省流量、省电等优点，而且已经有">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1292466-4eade55a8346ec75.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+    
+    <link rel="alternative" href="/atom.xml" title="技术资料分享小站" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="技术资料分享小站" title="技术资料分享小站"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="技术资料分享小站">技术资料分享小站</a></h1>
+				<h2 class="blog-motto">点滴积累，细细回味。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">简介</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:luohoufu.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/22/mqtt/" title="MQTT协议及应用场景" itemprop="url">MQTT协议及应用场景</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Tonny Luo" target="_blank" itemprop="author">Tonny Luo</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-22T03:44:38.000Z" itemprop="datePublished"> 发表于 2016-07-22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT简介"><span class="toc-number">2.</span> <span class="toc-text">MQTT简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT特点"><span class="toc-number">3.</span> <span class="toc-text">MQTT特点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT协议特征"><span class="toc-number">4.</span> <span class="toc-text">MQTT协议特征</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT服务端和客户端"><span class="toc-number">5.</span> <span class="toc-text">MQTT服务端和客户端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#应用场景"><span class="toc-number">6.</span> <span class="toc-text">应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#推送"><span class="toc-number">6.1.</span> <span class="toc-text">推送</span></a></li></ol></li></ol>
+		
+		</div>
+		
+		<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>　　近来公司需要做一个即时通讯工具，选型用MQTT协议来做。于是仔细搜集MQTT相关的了一些资料，并分享出来供大家参考。</p>
+<h2 id="MQTT简介"><a href="#MQTT简介" class="headerlink" title="MQTT简介"></a>MQTT简介</h2><p>　　MQTT（Message Queuing Telemetry Transport，消息队列遥测传输）是IBM开发的一个即时通讯协议，它是一种轻量级的、基于代理的“发布/订阅”模式的消息传输协议。其具有协议简洁、小巧、可扩展性强、省流量、省电等优点，而且已经有PHP，JAVA，Python，C，C#，Go等多个语言版本，基本可以使用在任何平台上，几乎可以把所有联网物品和外部连接起来，所以特别适合用来当做物联网的通信协议。</p>
+<h2 id="MQTT特点"><a href="#MQTT特点" class="headerlink" title="MQTT特点"></a>MQTT特点</h2><p>　　MQTT协议是为大量计算能力有限，且工作在低带宽、不可靠的网络的远程传感器和控制设备通讯而设计的协议，它具有以下主要的几项特性：</p>
+<ol>
+<li>使用发布/订阅消息模式，提供一对多的消息发布，解除应用程序耦合；</li>
+</ol>
+<ul>
+<li>对负载内容屏蔽的消息传输；</li>
+<li>使用 TCP/IP 提供网络连接；</li>
+<li>有三种消息发布服务质量：<ul>
+<li>“至多一次”，消息发布完全依赖底层 TCP/IP 网络。会发生消息丢失或重复。这一级别可用于如下情况，环境传感器数据，丢失一次读记录无所谓，因为不久后还会有第二次发送。</li>
+<li>“至少一次”，确保消息到达，但消息重复可能会发生。</li>
+<li>“只有一次”，确保消息到达一次。这一级别可用于如下情况，在计费系统中，消息重复或丢失会导致不正确的结果。</li>
+</ul>
+</li>
+<li>小型传输，开销很小（固定长度的头部是 2 字节），协议交换最小化，以降低网络流量；</li>
+<li>使用 Last Will 和 Testament 特性通知有关各方客户端异常中断的机制；</li>
+</ul>
+<h2 id="MQTT协议特征"><a href="#MQTT协议特征" class="headerlink" title="MQTT协议特征"></a>MQTT协议特征</h2><ol>
+<li><strong>消息模型</strong><br>　　MQTT是一种基于代理的发布/订阅的消息协议。提供一对多的消息分发，解除应用程序耦合。一个发布者可以对应多个订阅者，当发布者发生变化的时候，他可以将消息一一通知给所有的订阅者。这种模式提供了更大的网络扩展性和更动态的网络拓扑。<br><img src="http://upload-images.jianshu.io/upload_images/1292466-4eade55a8346ec75.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="MQTT 消息传输模型"></li>
+</ol>
+<ul>
+<li><strong>消息质量</strong><br>MQTT提供三种质量的服务：<ol>
+<li>至多一次，可能会出现丢包的现象。使用在对实时性要求不高的情况。这一级别可应用于如下情景，如环境传感器数据，丢失一次读记录无所谓，因为很快下一次读记录就会产生。</li>
+</ol>
+<ul>
+<li>至少一次，保证包会到达目的地，但是可能出现重包。</li>
+<li>正好一次，保证包会到达目的地，且不会出现重包的现象。这一级别可用于如计费系统等场景，在计费系统中，消息丢失或重复可能会导致生成错误的费用。</li>
+</ul>
+</li>
+<li><strong>主题名称</strong><br>　　主题名称（Topic name）用来标识已发布消息的信息的渠道。订阅者用它来确定接收到所关心的信息。它是一个分层的结构，用斜线“/”作为分隔符。有两种通配符可以在主题发布、订阅时使用：“#”和“+”。前者可以通配多层结构，而后者只能通配一层结构。例如一个topic ： “a/b/c”,则“a/+/c”和“a/#”都可以和它相等。发布不支持模糊匹配，必须是确定的主题。</li>
+<li><strong>遗属</strong><br>　　当一个客户端断开连接的时候，它希望客户端可以发送它指定的消息。该消息和普通消息的结构相同。通过设置该位并填入和信息相关的内容即可。</li>
+<li><strong>消息类型</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>消息类型</th>
+<th style="text-align:center">类型编码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reserved</td>
+<td style="text-align:center">0</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>connect</td>
+<td style="text-align:center">1</td>
+<td>客户端到服务端的连接请求</td>
+</tr>
+<tr>
+<td>connACK</td>
+<td style="text-align:center">2</td>
+<td>服务端对连接请求的响应</td>
+</tr>
+<tr>
+<td>publish</td>
+<td style="text-align:center">3</td>
+<td>发布消息</td>
+</tr>
+<tr>
+<td>puback</td>
+<td style="text-align:center">4</td>
+<td>对发布消息的回应</td>
+</tr>
+<tr>
+<td>pubRec</td>
+<td style="text-align:center">5</td>
+<td>收到发布消息（保证传输part1）</td>
+</tr>
+<tr>
+<td>pubRel</td>
+<td style="text-align:center">6</td>
+<td>释放发布消息（保证传输part2）</td>
+</tr>
+<tr>
+<td>pubComp</td>
+<td style="text-align:center">7</td>
+<td>完成发布消息（保证传输part3）</td>
+</tr>
+<tr>
+<td>subscribe</td>
+<td style="text-align:center">8</td>
+<td>客户端订阅请求</td>
+</tr>
+<tr>
+<td>subBack</td>
+<td style="text-align:center">9</td>
+<td>订阅请求的回应</td>
+</tr>
+<tr>
+<td>unsubscribe</td>
+<td style="text-align:center">10</td>
+<td>停止订阅请求</td>
+</tr>
+<tr>
+<td>unsubBack</td>
+<td style="text-align:center">11</td>
+<td>停止订阅请求响应</td>
+</tr>
+<tr>
+<td>pingReq</td>
+<td style="text-align:center">12</td>
+<td>Ping请求（保持连接）</td>
+</tr>
+<tr>
+<td>pingResp</td>
+<td style="text-align:center">13</td>
+<td>Ping响应</td>
+</tr>
+<tr>
+<td>disconnect</td>
+<td style="text-align:center">14</td>
+<td>客户端正在断开</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td style="text-align:center">15</td>
+<td>保留</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>开发一个MQTT库需要提供如下命令：</strong><br>Connect ：当一个TCP/IP套接字在服务器端和客户端连接建立时需要使用的命令。<br>publish  ： 是由客户端向服务端发送，告诉服务器端自己感兴趣的Topic。每一个publishMessage 都会与一个Topic的名字联系在一起。<br>pubRec:   是publish命令的响应，只不过使用了2级QoS协议。它是2级QoS协议的第二条消息<br>pubRel:    是2级QoS协议的第三条消息<br>publComp: 是2级QoS协议的第四条消息<br>subscribe： 允许一个客户端注册自已感兴趣的Topic 名字，发布到这些Topic的消息会以publish Message的形式由服务器端发送给客户端。<br>unsubscribe:  从客户端到服务器端，退订一个Topic。<br>Ping： 有客户端向服务器端发送的“are you alive”的消息。<br>disconnect：断开这个TCP/IP协议。</p>
+</blockquote>
+<h2 id="MQTT服务端和客户端"><a href="#MQTT服务端和客户端" class="headerlink" title="MQTT服务端和客户端"></a>MQTT服务端和客户端</h2><p>MQTT协议服务端：<a href="https://github.com/mqtt/mqtt.github.io/wiki/servers" target="_blank" rel="external">https://github.com/mqtt/mqtt.github.io/wiki/servers</a><br>MQTT协议类库：<a href="https://github.com/mqtt/mqtt.github.io/wiki/libraries" target="_blank" rel="external">https://github.com/mqtt/mqtt.github.io/wiki/libraries</a><br>MQTT协议官网：<a href="http://mqtt.org/" target="_blank" rel="external">http://mqtt.org/</a></p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><h3 id="推送"><a href="#推送" class="headerlink" title="推送"></a>推送</h3><p>　　再给大家普及下“推送”这个概念，推送这个词大部分人都会有印象的。比如PC端的推送广告，比如安卓的推送服务，还有一些即时通信软件如微信、易信等也是采用的推送技术。<br>　　现在的推送实现的方式已经非常多了，主流的有<a href="">C2DM</a>服务（Google Cloud Messaging），基于<a href="">XML</a>协议的通讯协议<a href="">XMPP</a>协议（Openfire + Spark + Smack）, 轻量级的、基于代理的“发布/订阅”模式的消息传输协议MQTT协议，还可以通过嵌入<a href="">SDK</a>使用第三方提供的推送服务，如<a href="">百度云推送</a>、<a href="">极光推送</a>、<a href="">智游推送</a>、<a href="">腾讯信鸽</a>等。<br>　　推送利用的也是类似于上面提到的代理技术，从而将数据源源不断地推向客户机。笔者对其它协议了解不多所以也不敢多做妄言，但是现在国内很多企业都已经广泛使用MQTT作为Android手机客户端与服务器端推送消息的协议。其中Sohu，Cmstop手机客户端中均有使用到MQTT作为消息推送消息。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MQTT/">MQTT</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://luohoufu.github.io/2016/07/22/mqtt/" data-title="MQTT协议及应用场景 | 技术资料分享小站" data-tsina="5666590322" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/22/mqtt1/" title="MQTT协议之头部信息介绍">
+  <strong>上一篇：</strong><br/>
+  <span>
+  MQTT协议之头部信息介绍</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/07/21/deepin2/"  title="利用 ssh 的用户配置文件 config 管理 ssh 会话">
+ <strong>下一篇：</strong><br/> 
+ <span>利用 ssh 的用户配置文件 config 管理 ssh 会话
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/22/mqtt/" data-title="MQTT协议及应用场景" data-url="http://luohoufu.github.io/2016/07/22/mqtt/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT简介"><span class="toc-number">2.</span> <span class="toc-text">MQTT简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT特点"><span class="toc-number">3.</span> <span class="toc-text">MQTT特点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT协议特征"><span class="toc-number">4.</span> <span class="toc-text">MQTT协议特征</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT服务端和客户端"><span class="toc-number">5.</span> <span class="toc-text">MQTT服务端和客户端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#应用场景"><span class="toc-number">6.</span> <span class="toc-text">应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#推送"><span class="toc-number">6.1.</span> <span class="toc-text">推送</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github 名片</p>
+<div class="github-card" data-github="luohoufu" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/操作系统/" title="操作系统">操作系统<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/github/" title="github">github<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/分布式/" title="分布式">分布式<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mqtt/" title="mqtt">mqtt<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/golang/" title="golang">golang<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MQTT/" title="MQTT">MQTT<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/redis/" title="redis">redis<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mysql/" title="mysql">mysql<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/mongodb/" title="mongodb">mongodb<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/java/" title="java">java<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/openresty/" title="openresty">openresty<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.infoq.com/cn/" target="_blank" title="一个精英文章汇集的站点">InfoQ</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/，常去看看" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.oschina.net/" target="_blank" title="关注国内开源">开源中国</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://segmentfault.com/" target="_blank" title="今天你又在开发中遇到了什么问题">SegmentFault</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 爱编程的小伙 <br/>
+			不想做程序猿的架构师不是好的产品经理</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/u/5666590322" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/luohoufu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/luohoufu" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		<a href="https://www.douban.com/people/142251737" target="_blank" class="icon-douban" title="豆瓣"></a>
+		
+		
+		
+		
+		<a href="mailto:luohoufu@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
+		
+		<a href="/about" target="_blank" title="Tonny Luo">Tonny Luo</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tonnyluo"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?dd09496f0b593221f4326d64011cab";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1259855911'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1259855911' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
