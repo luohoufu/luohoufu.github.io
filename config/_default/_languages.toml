@@ -1,6 +1,54 @@
 # Rename this file to languages.toml to enable multilingual support
+
+[zh-cn]
+languageName = "简体中文"
+weight = 1
+title = "大数据搜索技术"
+description = "搜索让数据更有价值"
+[[menu.main]]
+identifier = "home"
+name = "首页"
+url = "/"
+weight = 1
+[[menu.main]]
+identifier = "posts"
+name = "文章"
+url = "/posts/"
+weight = 2
+[[menu.main]]
+identifier = "tags"
+name = "标签"
+url = "/tags/"
+weight = 3
+[[menu.main]]
+identifier = "archives"
+name = "归档"
+url = "/archives/"
+weight = 4
+
 [en]
 languageName = "English"
 languagedirection = "ltr"
-title = "Example Site"
+weight = 2
+title = "Large-Scale Data Search Technologies"
+description = "Data becomes more valuable through search."
+[[menu.main]]
+identifier = "home"
+name = "Home"
+url = "/"
 weight = 1
+[[menu.main]]
+identifier = "posts"
+name = "Posts"
+url = "/posts/"
+weight = 2
+[[menu.main]]
+identifier = "tags"
+name = "Tags"
+url = "/tags/"
+weight = 3
+[[menu.main]]
+identifier = "archives"
+name = "Archives"
+url = "/archives/"
+weight = 4
