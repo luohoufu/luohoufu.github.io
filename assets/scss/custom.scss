@@ -1,3 +1,29 @@
 /*
     You can add your own custom styles here.
 */
+.lang-switcher-nav {
+    display: flex;
+   justify-content: flex-end; /* 设置为 flex-end 可以让元素靠右显示 */
+    align-items: center;
+  }
+   .lang-switcher {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+   .lang-switcher li {
+    margin-left: 10px;
+  }
+   .lang-switcher li a {
+    display: block;
+    text-decoration: none;
+    color: #333; /* 默认颜色 */
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  .lang-switcher li a:hover,
+   .lang-switcher li.active a {
+    background-color: #f0f0f0; /* 鼠标悬停和选中时的颜色 */
+  }
