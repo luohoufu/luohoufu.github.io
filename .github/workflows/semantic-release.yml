@@ -1,0 +1,41 @@
+name: Semantic Release
+
+on:
+  schedule:
+    # Release automatically 1 of month at 03:00 UTC
+    - cron: "0 3 1 */2 *"
+
+jobs:
+  semantic-release:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/changelog@5
+            @semantic-release/git@9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output new release version
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          echo ${{ steps.semantic.outputs.new_release_version }}
