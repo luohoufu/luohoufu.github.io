@@ -24,7 +24,7 @@ jobs:
       # - uses: GitHubSecurityLab/actions-permissions/monitor@v1
       - name: purge-workflow-runs
       # You may pin to the exact commit or the version.
-      # uses: boredland/action-purge-workflow-runs@b3b895de089c50bcddb76dcdf4280847b84a95c2
+      # uses: boredland/action-purge-workflow-runs@b3b895de089c50bcddb76dcdf4280847b84a95c2 
         uses: boredland/action-purge-workflow-runs@1.0.0
         with:
     # least days the runs have to be old to get purged
