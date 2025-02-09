@@ -18,7 +18,7 @@ It comes with a basic theme structure and configuration. GitHub action has been 
 
 4. Check `config` folder for the configuration files. You can edit them to suit your needs. Make sure to update the `baseurl` property in `config/_default/config.toml` to your site's URL.
 
-5. Open Settings -> Pages. Change the build branch from `master` to `gh-pages`.
+5. Open Settings -> Pages. Change the build branch from `main` to `gh-pages`.
 ![Build](https://github.com/namanh11611/hugo-theme-stack-starter/assets/16586200/12c763cd-bead-4923-b610-8788f388fcb5)
 
 6. Once you're done editing the site, just commit it and push it. GitHub action will deploy the site automatically to GitHub page asociated with the repository.

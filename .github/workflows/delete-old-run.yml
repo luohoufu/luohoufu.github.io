@@ -1,0 +1,33 @@
+name: Remove old runs
+
+# Controls when the workflow will run
+on:
+  schedule:
+    - cron: "0 10 1 */2 *"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Token permissions
+permissions:
+  actions: write
+  
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # - uses: GitHubSecurityLab/actions-permissions/monitor@v1
+      - name: purge-workflow-runs
+      # You may pin to the exact commit or the version.
+      # uses: boredland/action-purge-workflow-runs@b3b895de089c50bcddb76dcdf4280847b84a95c2
+        uses: boredland/action-purge-workflow-runs@1.0.0
+        with:
+    # least days the runs have to be old to get purged
+          days-old: 25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

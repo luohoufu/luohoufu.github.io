@@ -1,0 +1,52 @@
+name: Automatic dependabot reviewer
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  review-dependabot-pr:
+    runs-on: ubuntu-latest
+    
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    
+    env:
+      PR_URL: ${{github.event.pull_request.html_url}}
+      GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    
+    permissions:
+      pull-requests: write
+      contents: write
+        
+    steps:
+      - name: Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v2.3.0
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          compat-lookup: true
+
+      - name: Merge patch and minor updates
+        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+        run: |
+          gh pr review $PR_URL --approve -b "I'm **approving** this pull request because **it includes a patch or minor update**"
+          gh pr merge --auto --merge "$PR_URL"
+
+      - name: Merge major updates of development dependencies
+        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-major' && steps.dependabot-metadata.outputs.dependency-type == 'direct:development'}}
+        run: |
+          gh pr review $PR_URL --approve -b "I'm **approving** this pull request because **it includes a major update of a dependency used only in development**"
+          gh pr merge --auto --merge "$PR_URL"
+
+      - name: Merge major updates of production dependencies with compatibility score greater than 70
+        if: ${{steps.dependabot-metadata.outputs.compatibility-score > 70}}
+        run: |
+          gh pr review $PR_URL --approve -b "I'm **approving** this pull request because **it includes a major update of a dependency used in production but comatibility is greater than *70%***"
+          gh pr merge --auto --merge "$PR_URL"
+
+      - name: Comment on major updates of non-development dependencies if the compatibility score is less than 70
+        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-major' && steps.dependabot-metadata.outputs.dependency-type == 'direct:production' && steps.dependabot-metadata.outputs.compatibility-score < 70}}
+        run: |
+          gh pr comment $PR_URL --body "I'm **not approving** this PR because **it includes a major update of a dependency used in production and compatibility is less than 70**"
+          gh pr edit $PR_URL --add-label "requires-manual-qa"   
