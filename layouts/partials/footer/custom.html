@@ -1,0 +1,35 @@
+<script src="https://cdn.jsdelivr.net/npm/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>
+addBackToTop({
+  diameter: 40,
+  backgroundColor: '#ddd',
+  textColor: 'red'
+})
+</script>
+<script>
+    const translations = {
+        days: "{{ T `footer.run.days` }}",
+        hours: "{{ T `footer.run.hours` }}",
+        minutes: "{{ T `footer.run.minutes` }}",
+        seconds: "{{ T `footer.run.seconds` }}",
+    };
+
+    let s1 = '2024-12-23'; // Website start date
+    s1 = new Date(s1.replace(/-/g, "/"));
+    let s2 = new Date();
+    let timeDifference = s2.getTime() - s1.getTime();
+
+    let days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+    let hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+    // Construct the *complete* dynamic string in JavaScript
+    let result = days + " " + translations.days + " " +
+        hours + " " + translations.hours + " " +
+        minutes + " " + translations.minutes + " " +
+        seconds + " " + translations.seconds;
+
+    // Replace the placeholder in the translated string using JavaScript's replace()
+    document.getElementById('runningdays').innerHTML = result;
+</script>

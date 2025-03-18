@@ -1,0 +1,32 @@
+# Configure main menu and social menu
+#[[main]]
+#identifier = "home"
+#name = "Home"
+#url = "/"
+#[main.params]
+#icon = "home"
+#newtab = true
+
+[[social]]
+identifier = "github"
+name = "GitHub"
+url = "https://github.com/luohoufu"
+
+[social.params]
+icon = "brand-github"
+
+[[social]]
+identifier = "email"
+name = "Email"
+url = "mailto:luohf@infinilabs.com"
+
+[social.params]
+icon = "brand-email"
+
+[[social]]
+identifier = "rss"
+name = "RSS"
+url = "index.xml"
+
+[social.params]
+icon = "rss"

@@ -1,0 +1,13 @@
+[zh-cn]
+languageName = "中文/Chinese"
+languageNameShort = "zh"
+languagedirection = "ltr"
+title = "大数据搜索技术"
+weight = 1
+
+[en]
+languageName = "English/英语"
+languageNameShort = "en"
+languagedirection = "ltr"
+title = "Scale Data Search"
+weight = 2

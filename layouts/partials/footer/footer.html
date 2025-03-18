@@ -1,0 +1,22 @@
+{{- $ThemeVersion := "3.30.0" -}}
+<footer class="site-footer">
+    <section class="copyright">
+        {{ with .Site.Params.footer.customText }}
+            {{ . | safeHTML }} &nbsp; | &nbsp;
+        {{ end }}
+        &copy; 
+        {{ if and (.Site.Params.footer.since) (ne .Site.Params.footer.since (int (now.Format "2006"))) }}
+            {{ .Site.Params.footer.since }} - 
+        {{ end }}
+        {{ now.Format "2006" }} {{ default .Site.Title .Site.Copyright }}
+    </section>
+    <section class="powerby">
+        {{- $Generator := `<a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a>` -}}
+        {{- $Theme := printf `<b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="%s">Stack</a></b>` $ThemeVersion -}}
+        {{- $DesignedBy := `<a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>` -}}
+
+        {{ T `footer.run.tip` }}<span id="runningdays"></span> &nbsp;
+        {{ T "footer.builtWith" (dict "Generator" $Generator) | safeHTML }} &nbsp;
+        {{ T "footer.designedBy" (dict "Theme" $Theme "DesignedBy" $DesignedBy) | safeHTML }} &nbsp;
+    </section>
+</footer>

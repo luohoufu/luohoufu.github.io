@@ -1,0 +1,26 @@
+<style>
+    /* Overwrite CSS variable */
+    :root {
+        --code-font-family: "JetBrains Mono"; /* 按需修改 */
+    }
+
+    code {
+        font-size: 1.4rem; /* font size */
+    }
+
+    pre {
+        font-size: 1.4rem; /* font size */
+    }
+</style>
+
+<script>
+    (function() {
+        const customFont = document.createElement('link');
+        customFont.href = "/css/fonts.css";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
