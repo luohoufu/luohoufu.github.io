@@ -1,0 +1,383 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="Understand the basic concepts of Kubernetes Operators and learn how to create a simple `Hello World` Operator using Kubebuilder. This tutorial details the steps for environment preparation, project initialization, CRD definition, Reconcile logic implementation, and Operator deployment and validation, helping you quickly get started with Operator development."><title>Getting Started with Operator Development Series (Part 1): Hello World!</title>
+<link rel=canonical href=https://blog.searchkit.tech/en/p/operator/><link rel=stylesheet href=/scss/style.min.b45260ea414ec5b2c3d0d0b38cf92efa16cc2b88dde44c598125e34107f10054.css><script defer src=https://cloud.umami.is/script.js data-website-id=b4ca6b09-8f65-4a2e-9ea0-302df433374f></script><script>(function(){var t,e=window;if(e.ChannelIO)return e.console.error("ChannelIO script included twice.");t=function(){t.c(arguments)},t.q=[],t.c=function(e){t.q.push(e)},e.ChannelIO=t;function n(){if(e.ChannelIOInitialized)return;e.ChannelIOInitialized=!0;var n,t=document.createElement("script");t.type="text/javascript",t.async=!0,t.src="https://cdn.channel.io/plugin/ch-plugin-web.js",n=document.getElementsByTagName("script")[0],n.parentNode&&n.parentNode.insertBefore(t,n)}document.readyState==="complete"?n():(e.addEventListener("DOMContentLoaded",n),e.addEventListener("load",n))})(),ChannelIO("boot",{pluginKey:"44e8af17-4c19-4784-b7e4-f32d10ab5a96"})</script><meta property='og:title' content="Getting Started with Operator Development Series (Part 1): Hello World!"><meta property='og:description' content="Understand the basic concepts of Kubernetes Operators and learn how to create a simple `Hello World` Operator using Kubebuilder. This tutorial details the steps for environment preparation, project initialization, CRD definition, Reconcile logic implementation, and Operator deployment and validation, helping you quickly get started with Operator development."><meta property='og:url' content='https://blog.searchkit.tech/en/p/operator/'><meta property='og:site_name' content='Scale Data Search'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='Kubernetes'><meta property='article:tag' content='Operator'><meta property='article:published_time' content='2025-04-01T08:00:00+00:00'><meta property='article:modified_time' content='2025-04-01T08:00:00+00:00'><meta property='og:image' content='https://blog.searchkit.tech/p/operator/cover.png'><meta name=twitter:title content="Getting Started with Operator Development Series (Part 1): Hello World!"><meta name=twitter:description content="Understand the basic concepts of Kubernetes Operators and learn how to create a simple `Hello World` Operator using Kubebuilder. This tutorial details the steps for environment preparation, project initialization, CRD definition, Reconcile logic implementation, and Operator deployment and validation, helping you quickly get started with Operator development."><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content='https://blog.searchkit.tech/p/operator/cover.png'><link rel="shortcut icon" href=/favicon.svg><style>:root{--sys-font-family:"HarmonyOS_Sans_SC_Medium", Georgia, -apple-system, 'Nimbus Roman No9 L', 'PingFang SC', 'Hiragino Sans GB', 'Noto Serif SC', 'Microsoft Yahei', 'WenQuanYi Micro Hei', 'ST Heiti', sans-serif;--code-font-family:"JetBrainsMono Regular", Menlo, Monaco, Consolas, "Courier New";--article-font-family:"HarmonyOS_Sans_SC_Medium", -apple-system, "PingFang SC", var(--base-font-family)}</style></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label="Toggle Menu">
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure id=site-avatar class=site-avatar><a href=/en/><img src=/img/avatar_hu_45940b0e618b43cd.png width=300 height=288 class=site-logo loading=lazy alt=Avatar>
+</a><span class=emoji>🚀</span></figure><script>window.addEventListener("onColorSchemeChange",function(e){let t=e.detail==="light"?"🌾":"🚜";t.length===0&&(t="🚀");const n=document.getElementById("emoji-elt");t.length>0&&n?document.getElementById("emoji-elt").innerHTML=t:t.length>0&&!n?document.getElementById("site-avatar").insertAdjacentHTML("beforeend",`<span id="emoji-elt" class="emoji">${t}</span>`):t.length===0&&n&&document.getElementById("emoji-elt").remove()})</script><div class=site-meta><h1 class=site-name><a href=/en>Scale Data Search</a></h1><h2 class=site-description>Search Beyond Limits, Discover the Extraordinary</h2></div></header><ol class=menu-social><li><a href=mailto:luohf@infinilabs.com target=_blank title=Email rel=me><svg width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/><path d="M3 7l9 6 9-6"/></svg></a></li><li><a href=https://github.com/luohoufu target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=index.xml target=_blank title=RSS rel=me><svg class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="5" cy="19" r="1"/><path d="M4 4a16 16 0 0116 16"/><path d="M4 11a9 9 0 019 9"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/en/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>HOME</span></a></li><li><a href=/en/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/en/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/en/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=i18n-switch><svg class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 5h7"/><path d="M9 3v2c0 4.418-2.239 8-5 8"/><path d="M5 9c-.003 2.144 2.952 3.908 6.7 4"/><path d="M12 20l4-9 4 9"/><path d="M19.1 18h-6.2"/></svg>
+<select name=language title=language onchange="window.location.href=this.selectedOptions[0].value"><option value=https://blog.searchkit.tech/>中文/Chinese</option><option value=https://blog.searchkit.tech/en/ selected>English/英语</option></select></li><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-sun-high" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14.828 14.828A4 4 0 109.172 9.172a4 4 0 005.656 5.656z"/><path d="M6.343 17.657l-1.414 1.414"/><path d="M6.343 6.343 4.929 4.929"/><path d="M17.657 6.343l1.414-1.414"/><path d="M17.657 17.657l1.414 1.414"/><path d="M4 12H2"/><path d="M12 4V2"/><path d="M20 12h2"/><path d="M12 20v2"/></svg>
+<svg class="icon icon-tabler icon-tabler-moon-stars" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3c.132.0.263.0.393.0a7.5 7.5.0 007.92 12.446A9 9 0 1112 2.992z"/><path d="M17 4a2 2 0 002 2 2 2 0 00-2 2 2 2 0 00-2-2 2 2 0 002-2"/><path d="M19 11h2m-1-1v2"/></svg>
+<span>Dark Mode</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">Table of contents</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#background>Background</a></li><li><a href=#target-audience>Target Audience</a></li><li><a href=#prerequisites>Prerequisites</a></li><li><a href=#what-is-an-operator>What is an Operator?</a></li><li><a href=#why-choose-operators>Why Choose Operators?</a></li><li><a href=#our-first-operator-hello-world>Our First Operator: Hello World</a><ol><li><a href=#1-initialize-the-kubebuilder-project>1. Initialize the Kubebuilder Project</a></li><li><a href=#2-create-the-custom-resource-definition-crd>2. Create the Custom Resource Definition (CRD)</a></li><li><a href=#3-implement-the-reconcile-logic>3. Implement the Reconcile Logic</a></li><li><a href=#4-install-the-crd-into-the-kubernetes-cluster>4. Install the CRD into the Kubernetes Cluster</a></li><li><a href=#5-run-the-operator>5. Run the Operator</a></li><li><a href=#6-create-the-helloworld-resource>6. Create the HelloWorld Resource</a></li><li><a href=#7-verify>7. Verify</a></li></ol></li><li><a href=#conclusion>Conclusion</a></li></ol></nav></div></section></aside><main class="main full-width"><article class="has-image main-article"><header class=article-header><div class=article-image><a href=/en/p/operator/><img src=/p/operator/cover_hu_cca116f8f0995c4.png srcset="/p/operator/cover_hu_cca116f8f0995c4.png 800w, /p/operator/cover_hu_1ceddeba678260aa.png 1600w" width=800 height=286 loading=lazy alt="Featured image of post Getting Started with Operator Development Series (Part 1): Hello World!"></a></div><div class=article-details><header class=article-category><a href=/en/categories/devops/>DevOps</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/en/p/operator/>Getting Started with Operator Development Series (Part 1): Hello World!</a></h2><h3 class=article-subtitle>Understand the basic concepts of Kubernetes Operators and learn how to create a simple `Hello World` Operator using Kubebuilder. This tutorial details the steps for environment preparation, project initialization, CRD definition, Reconcile logic implementation, and Operator deployment and validation, helping you quickly get started with Operator development.</h3></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published>Apr 01, 2025</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>9 minute read</time></div></footer><footer class=article-translations><svg class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 5h7"/><path d="M9 3v2c0 4.418-2.239 8-5 8"/><path d="M5 9c-.003 2.144 2.952 3.908 6.7 4"/><path d="M12 20l4-9 4 9"/><path d="M19.1 18h-6.2"/></svg><div><a href=https://blog.searchkit.tech/p/operator/ class=link>中文/Chinese</a></div></footer></div></header><section class=article-content><h2 id=background>Background</h2><p>Our company recently decided to migrate our products to a Kubernetes environment. To better manage and automate our applications, we chose to use Kubernetes Operators. This blog series will document our process of learning and developing Operators, and we hope it can help others get started with Operator development as well.</p><h2 id=target-audience>Target Audience</h2><ul><li>Developers and operations personnel with some understanding of Kubernetes.</li><li>Individuals who want to use Operators to automate application management.</li><li>People with a basic understanding of the Go language.</li></ul><h2 id=prerequisites>Prerequisites</h2><p>Before you begin, you&rsquo;ll need the following environment set up:</p><ul><li><p><strong>Go Language Environment (version 1.23 or higher):</strong> Operators are typically developed in Go. You need to install the Go environment, preferably version 1.21 or later (the example uses features compatible with 1.21+, but 1.23+ is recommended per the Kubebuilder requirement often seen). You can download the installation package from <a class=link href=https://go.dev/dl/ target=_blank rel=noopener>https://go.dev/dl/</a>. After installation, please configure your <code>GOPATH</code> and <code>PATH</code> environment variables correctly.</p></li><li><p><strong>Kubernetes Cluster:</strong> You need an accessible Kubernetes cluster to deploy and test the Operator. You can use tools like Minikube, Kind, or any other Kubernetes distribution.</p></li><li><p><strong>kubectl Command-Line Tool:</strong> <code>kubectl</code> is the Kubernetes command-line tool used to interact with the cluster. Ensure you have <code>kubectl</code> installed, configured, and can connect to your Kubernetes cluster.</p></li><li><p><strong>Kubebuilder (version 3.0 or higher):</strong> Kubebuilder is a framework for rapidly building Kubernetes Operators. Using Kubebuilder simplifies the development process and generates necessary boilerplate code. You can install Kubebuilder using the following commands:</p></li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Adjust GOOS/GOARCH if needed, check Kubebuilder docs for specific versions</span>
+</span></span><span class=line><span class=cl><span class=nv>OS</span><span class=o>=</span><span class=k>$(</span>go env GOOS<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=nv>ARCH</span><span class=o>=</span><span class=k>$(</span>go env GOARCH<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=c1># Verify KubeBuilder version compatibility with your Go and K8s versions</span>
+</span></span><span class=line><span class=cl><span class=c1># Example for a specific version, check latest releases on Kubebuilder site</span>
+</span></span><span class=line><span class=cl><span class=c1># curl -L -o kubebuilder https://github.com/kubernetes-sigs/kubebuilder/releases/download/v3.x.y/kubebuilder_${OS}_${ARCH}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Or, get the latest (use with caution, check compatibility)</span>
+</span></span><span class=line><span class=cl>curl -L -o kubebuilder <span class=s2>&#34;https://go.kubebuilder.io/dl/latest/</span><span class=k>$(</span>go env GOOS<span class=k>)</span><span class=s2>/</span><span class=k>$(</span>go env GOARCH<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Make it executable and move to a bin directory</span>
+</span></span><span class=line><span class=cl>chmod +x kubebuilder
+</span></span><span class=line><span class=cl>sudo mv kubebuilder /usr/local/bin/ <span class=c1># Or another directory in your PATH, like $HOME/go/bin</span>
+</span></span></code></pre></td></tr></table></div></div><pre><code>&gt; Ensure the directory where you place `kubebuilder` (e.g., `/usr/local/bin` or `$HOME/go/bin`) is in your `PATH` environment variable. You can run `kubebuilder version` to verify the installation.
+</code></pre><ul><li><strong>Docker (Optional):</strong> You need Docker installed if you intend to build Docker images for your Operator.</li></ul><blockquote><p>My development environment is macOS (arm64) with OrbStack.</p></blockquote><h2 id=what-is-an-operator>What is an Operator?</h2><p>Simply put, an Operator is an extension to Kubernetes that uses Custom Resources (CRs) to automate the management of applications. Operators allow us to manage complex applications (like databases, message queues, etc.) in the same way we manage built-in Kubernetes resources.</p><h2 id=why-choose-operators>Why Choose Operators?</h2><p>Operators provide a declarative way to manage the lifecycle of applications, including deployment, upgrades, backups, and recovery. They can simplify operational workflows, increase automation, and ensure that the application state matches the desired configuration.</p><h2 id=our-first-operator-hello-world>Our First Operator: Hello World</h2><p>This Operator will watch for a Custom Resource named <code>HelloWorld</code> and create a Pod in Kubernetes. This Pod will run a simple application that prints &ldquo;Hello World&rdquo;.</p><h3 id=1-initialize-the-kubebuilder-project>1. Initialize the Kubebuilder Project</h3><p>First, we need to create a new project using Kubebuilder. Create a new directory within your <code>GOPATH</code> (or any preferred location if using Go modules outside GOPATH), for example, <code>hello-world-operator</code>. Then, navigate into that directory and run the following command:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Replace example.com and repo path with your own details if desired</span>
+</span></span><span class=line><span class=cl>kubebuilder init --domain example.com --repo github.com/your-user/hello-world-operator
+</span></span></code></pre></td></tr></table></div></div><blockquote><p><strong>Note:</strong> The original used <code>--domain infini.cloud --repo github.com/infinilabs/hello-world-operator</code>. Remember to replace <code>github.com/your-user/hello-world-operator</code> with your actual repository path if you plan to host it. The domain is used for the API group.</p></blockquote><p>This command initializes a new Kubebuilder project, generating several necessary files and directories.</p><h3 id=2-create-the-custom-resource-definition-crd>2. Create the Custom Resource Definition (CRD)</h3><p>Next, we define the structure for our <code>HelloWorld</code> resource. Run the following command:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubebuilder create api --group example --version v1alpha1 --kind HelloWorld
+</span></span></code></pre></td></tr></table></div></div><p>This command creates a new API definition, generating files including <code>api/v1alpha1/helloworld_types.go</code> (for the type definition) and <code>controllers/helloworld_controller.go</code> (for the reconciliation logic).</p><p>Edit the <code>api/v1alpha1/helloworld_types.go</code> file. Modify the <code>HelloWorldSpec</code> definition to include <code>name</code> and <code>message</code> fields:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// HelloWorldSpec defines the desired state of HelloWorld</span>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>HelloWorldSpec</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// Important: Run &#34;make&#34; to regenerate code after modifying this file</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// Name specifies the name for resources created by this HelloWorld resource.</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// +optional</span>
+</span></span><span class=line><span class=cl>    <span class=nx>Name</span> <span class=kt>string</span> <span class=s>`json:&#34;name,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// Message is the message to be printed by the pod.</span>
+</span></span><span class=line><span class=cl>    <span class=nx>Message</span> <span class=kt>string</span> <span class=s>`json:&#34;message&#34;`</span> <span class=c1>// Made mandatory for simplicity in example</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// HelloWorldStatus defines the observed state of HelloWorld</span>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>HelloWorldStatus</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Important: Run &#34;make&#34; to regenerate code after modifying this file</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// PodName is the name of the Pod created by the HelloWorld resource.</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// +optional</span>
+</span></span><span class=line><span class=cl>	<span class=nx>PodName</span> <span class=kt>string</span> <span class=s>`json:&#34;podName,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p><strong>Note:</strong> I&rsquo;ve made <code>Message</code> mandatory (<code>json:"message"</code>) as the controller logic uses it directly. Added <code>+optional</code> markers and a basic <code>Status</code> field as good practice, although the controller logic below doesn&rsquo;t update the status yet. Run <code>make manifests</code> after editing this file.</p></blockquote><h3 id=3-implement-the-reconcile-logic>3. Implement the Reconcile Logic</h3><p>Edit the <code>controllers/helloworld_controller.go</code> file. Implement the <code>Reconcile</code> function to create a Pod running a <code>busybox</code> image that echoes the <code>message</code> defined in the <code>HelloWorld</code> resource.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>controllers</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>corev1</span> <span class=s>&#34;k8s.io/api/core/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=nx>apierrors</span> <span class=s>&#34;k8s.io/apimachinery/pkg/api/errors&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=nx>metav1</span> <span class=s>&#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;k8s.io/apimachinery/pkg/runtime&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctrl</span> <span class=s>&#34;sigs.k8s.io/controller-runtime&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/log&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>examplev1alpha1</span> <span class=s>&#34;github.com/your-user/hello-world-operator/api/v1alpha1&#34;</span> <span class=c1>// !! Update this import path !!</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// HelloWorldReconciler reconciles a HelloWorld object</span>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>HelloWorldReconciler</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>client</span><span class=p>.</span><span class=nx>Client</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Scheme</span> <span class=o>*</span><span class=nx>runtime</span><span class=p>.</span><span class=nx>Scheme</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//+kubebuilder:rbac:groups=example.com,resources=helloworlds,verbs=get;list;watch;create;update;patch;delete</span>
+</span></span><span class=line><span class=cl><span class=c1>//+kubebuilder:rbac:groups=example.com,resources=helloworlds/status,verbs=get;update;patch</span>
+</span></span><span class=line><span class=cl><span class=c1>//+kubebuilder:rbac:groups=example.com,resources=helloworlds/finalizers,verbs=update</span>
+</span></span><span class=line><span class=cl><span class=c1>//+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Reconcile is part of the main kubernetes reconciliation loop which aims to</span>
+</span></span><span class=line><span class=cl><span class=c1>// move the current state of the cluster closer to the desired state.</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>HelloWorldReconciler</span><span class=p>)</span> <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>req</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span> <span class=o>:=</span> <span class=nx>log</span><span class=p>.</span><span class=nf>FromContext</span><span class=p>(</span><span class=nx>ctx</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;Reconciling HelloWorld&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// 1. Fetch the HelloWorld instance</span>
+</span></span><span class=line><span class=cl>	<span class=nx>helloWorld</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>examplev1alpha1</span><span class=p>.</span><span class=nx>HelloWorld</span><span class=p>{}</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>r</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>req</span><span class=p>.</span><span class=nx>NamespacedName</span><span class=p>,</span> <span class=nx>helloWorld</span><span class=p>);</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>if</span> <span class=nx>apierrors</span><span class=p>.</span><span class=nf>IsNotFound</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=c1>// Object not found, likely deleted. Return without error.</span>
+</span></span><span class=line><span class=cl>			<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;HelloWorld resource not found. Ignoring since object must be deleted&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>		<span class=c1>// Error reading the object - requeue the request.</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to get HelloWorld&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Use spec.Name if provided, otherwise default to CR name for the Pod name prefix</span>
+</span></span><span class=line><span class=cl>	<span class=nx>podNamePrefix</span> <span class=o>:=</span> <span class=nx>helloWorld</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Name</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>podNamePrefix</span> <span class=o>==</span> <span class=s>&#34;&#34;</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>podNamePrefix</span> <span class=p>=</span> <span class=nx>helloWorld</span><span class=p>.</span><span class=nx>Name</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>podName</span> <span class=o>:=</span> <span class=nx>podNamePrefix</span> <span class=o>+</span> <span class=s>&#34;-pod&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// 2. Define the desired Pod</span>
+</span></span><span class=line><span class=cl>	<span class=nx>desiredPod</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>ObjectMeta</span><span class=p>:</span> <span class=nx>metav1</span><span class=p>.</span><span class=nx>ObjectMeta</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=nx>Name</span><span class=p>:</span>      <span class=nx>podName</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>			<span class=nx>Namespace</span><span class=p>:</span> <span class=nx>helloWorld</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>			<span class=nx>Labels</span><span class=p>:</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>string</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>				<span class=s>&#34;app&#34;</span><span class=p>:</span> <span class=nx>helloWorld</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=c1>// Label with the CR name for easier selection</span>
+</span></span><span class=line><span class=cl>			<span class=p>},</span>
+</span></span><span class=line><span class=cl>		<span class=p>},</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Spec</span><span class=p>:</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>PodSpec</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=nx>Containers</span><span class=p>:</span> <span class=p>[]</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>Container</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>				<span class=p>{</span>
+</span></span><span class=line><span class=cl>					<span class=nx>Name</span><span class=p>:</span>  <span class=s>&#34;hello-world-container&#34;</span><span class=p>,</span> <span class=c1>// More descriptive container name</span>
+</span></span><span class=line><span class=cl>					<span class=nx>Image</span><span class=p>:</span> <span class=s>&#34;busybox&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>					<span class=c1>// Use echo and sleep; echo prints the message from the spec</span>
+</span></span><span class=line><span class=cl>					<span class=nx>Command</span><span class=p>:</span> <span class=p>[]</span><span class=kt>string</span><span class=p>{</span><span class=s>&#34;/bin/sh&#34;</span><span class=p>,</span> <span class=s>&#34;-c&#34;</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;echo &#39;Message from %s: %s&#39;; sleep 3600&#34;</span><span class=p>,</span> <span class=nx>helloWorld</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=nx>helloWorld</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Message</span><span class=p>)},</span>
+</span></span><span class=line><span class=cl>				<span class=p>},</span>
+</span></span><span class=line><span class=cl>			<span class=p>},</span>
+</span></span><span class=line><span class=cl>			<span class=nx>RestartPolicy</span><span class=p>:</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>RestartPolicyOnFailure</span><span class=p>,</span> <span class=c1>// Example policy</span>
+</span></span><span class=line><span class=cl>		<span class=p>},</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// 3. Set HelloWorld instance as the owner and controller of the Pod</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// This ensures the Pod is garbage collected when the HelloWorld CR is deleted</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nf>SetControllerReference</span><span class=p>(</span><span class=nx>helloWorld</span><span class=p>,</span> <span class=nx>desiredPod</span><span class=p>,</span> <span class=nx>r</span><span class=p>.</span><span class=nx>Scheme</span><span class=p>);</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to set controller reference for Pod&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// 4. Check if the Pod already exists</span>
+</span></span><span class=line><span class=cl>	<span class=nx>foundPod</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>err</span> <span class=o>:=</span> <span class=nx>r</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>client</span><span class=p>.</span><span class=nx>ObjectKey</span><span class=p>{</span><span class=nx>Name</span><span class=p>:</span> <span class=nx>desiredPod</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=nx>Namespace</span><span class=p>:</span> <span class=nx>desiredPod</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>},</span> <span class=nx>foundPod</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// If Pod does not exist, create it</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nx>apierrors</span><span class=p>.</span><span class=nf>IsNotFound</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;Creating a new Pod&#34;</span><span class=p>,</span> <span class=s>&#34;Pod.Namespace&#34;</span><span class=p>,</span> <span class=nx>desiredPod</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>,</span> <span class=s>&#34;Pod.Name&#34;</span><span class=p>,</span> <span class=nx>desiredPod</span><span class=p>.</span><span class=nx>Name</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>err</span> <span class=p>=</span> <span class=nx>r</span><span class=p>.</span><span class=nf>Create</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>desiredPod</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to create new Pod&#34;</span><span class=p>,</span> <span class=s>&#34;Pod.Namespace&#34;</span><span class=p>,</span> <span class=nx>desiredPod</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>,</span> <span class=s>&#34;Pod.Name&#34;</span><span class=p>,</span> <span class=nx>desiredPod</span><span class=p>.</span><span class=nx>Name</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>		<span class=c1>// Pod created successfully - don&#39;t requeue immediately, wait for watch event</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;Pod created successfully&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span> <span class=c1>// Usually better to rely on watches than requeueing immediately</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=c1>// Other error trying to get the Pod</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to get Pod&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// 5. Pod already exists - potentially check/update if needed (skipped for this simple example)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;Skip reconcile: Pod already exists&#34;</span><span class=p>,</span> <span class=s>&#34;Pod.Namespace&#34;</span><span class=p>,</span> <span class=nx>foundPod</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>,</span> <span class=s>&#34;Pod.Name&#34;</span><span class=p>,</span> <span class=nx>foundPod</span><span class=p>.</span><span class=nx>Name</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// If we needed to update the pod based on CR changes, we would do it here.</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// For this example, we do nothing if the Pod exists.</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// (Optional) Update HelloWorld status - Good practice but omitted for brevity here</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// helloWorld.Status.PodName = foundPod.Name</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// if err := r.Status().Update(ctx, helloWorld); err != nil {</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//     log.Error(err, &#34;Failed to update HelloWorld status&#34;)</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//     return ctrl.Result{}, err</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// }</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// SetupWithManager sets up the controller with the Manager.</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>HelloWorldReconciler</span><span class=p>)</span> <span class=nf>SetupWithManager</span><span class=p>(</span><span class=nx>mgr</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Manager</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nf>NewControllerManagedBy</span><span class=p>(</span><span class=nx>mgr</span><span class=p>).</span>
+</span></span><span class=line><span class=cl>		<span class=nf>For</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>examplev1alpha1</span><span class=p>.</span><span class=nx>HelloWorld</span><span class=p>{}).</span> <span class=c1>// Watch for HelloWorld resources</span>
+</span></span><span class=line><span class=cl>		<span class=nf>Owns</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}).</span>                <span class=c1>// Watch for Pods owned by HelloWorld</span>
+</span></span><span class=line><span class=cl>		<span class=nf>Complete</span><span class=p>(</span><span class=nx>r</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p><strong>Important:</strong> Replace <code>github.com/your-user/hello-world-operator</code> in the import path with the actual path you used in <code>kubebuilder init --repo</code>. Run <code>make manifests generate</code> after editing the controller file to update generated code and manifests.</p></blockquote><h3 id=4-install-the-crd-into-the-kubernetes-cluster>4. Install the CRD into the Kubernetes Cluster</h3><p>Run the following command to install the Custom Resource Definition into your cluster:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>make install
+</span></span></code></pre></td></tr></table></div></div><h3 id=5-run-the-operator>5. Run the Operator</h3><p>Run the following command to run the Operator locally (it will connect to your configured Kubernetes cluster):</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>make run
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>Keep this terminal running.</p></blockquote><h3 id=6-create-the-helloworld-resource>6. Create the HelloWorld Resource</h3><p>In a <strong>new terminal</strong>, create a file named <code>my-hello-world.yaml</code> with the following content:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>example.com/v1alpha1</span><span class=w> </span><span class=c># Ensure group matches your --group flag</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>HelloWorld</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>my-hello-world-sample</span><span class=w> </span><span class=c># Changed name slightly to avoid conflict with potential Pod name logic</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w> </span><span class=c># Specify namespace or use kubectl default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>my-hello</span><span class=w> </span><span class=c># Name used for the Pod prefix</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>message</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Hello World from my first Operator!&#34;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Apply this resource using <code>kubectl</code>:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f my-hello-world.yaml
+</span></span></code></pre></td></tr></table></div></div><h3 id=7-verify>7. Verify</h3><p>Check if the Pod was created (using the <code>spec.name</code> field + <code>-pod</code> suffix as defined in the controller):</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get pods -n default
+</span></span></code></pre></td></tr></table></div></div><p>You should see a Pod named <code>my-hello-pod</code> (or similar based on your spec.name).</p><p>Check the logs of the Pod to confirm it printed the message:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Replace my-hello-pod with the actual pod name from &#39;kubectl get pods&#39;</span>
+</span></span><span class=line><span class=cl>kubectl logs my-hello-pod -n default
+</span></span></code></pre></td></tr></table></div></div><p>You should see output similar to: <code>Message from my-hello-world-sample: Hello World from my first Operator!</code></p><h2 id=conclusion>Conclusion</h2><p>Congratulations on creating your first Operator! While this example is simple, it demonstrates the fundamental principle of Operators: watching Custom Resources and managing Kubernetes resources based on their desired state. In the upcoming parts of this series, we will delve into more advanced Operator features.</p><p>Stay tuned for the next post!</p></section><footer class=article-footer><section class=article-tags><a href=/en/tags/kubernetes/>Kubernetes</a>
+<a href=/en/tags/operator/>Operator</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section><section class=article-lastmod><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<span>Last updated on Apr 01, 2025 08:00 UTC</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>Related content</h2><div class=related-content><div class="flex article-list--tile"><article class=has-image><a href=/en/p/fix-infini-console-cluster-status/><div class=article-image><img src=/p/fix-infini-console-cluster-status/cover.b88866e8839f097032520b35fdee2ed5_hu_a4f605ba758b37be.png width=250 height=150 loading=lazy alt="Featured image of post Fixing Abnormal System Cluster Status in INFINI Console 1.29.0/1.29.1" data-key=fix-infini-console-cluster-status data-hash="md5-uIhm6IOfCXAyUgs1/e4u1Q=="></div><div class=article-details><h2 class=article-title>Fixing Abnormal System Cluster Status in INFINI Console 1.29.0/1.29.1</h2></div></a></article></div></div></aside><script src=https://giscus.app/client.js data-repo=aisearchkit/feedback data-repo-id=R_kgDOOFfn_w data-category=Q&amp;A data-category-id=DIC_kwDOOFfn_84CnuuW data-mapping=title data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=top data-theme=light data-lang=en data-loading crossorigin=anonymous async></script><script>function setGiscusTheme(e){let t=document.querySelector("iframe.giscus-frame");t&&t.contentWindow.postMessage({giscus:{setConfig:{theme:e}}},"https://giscus.app")}(function(){addEventListener("message",t=>{if(event.origin!=="https://giscus.app")return;e()}),window.addEventListener("onColorSchemeChange",e);function e(){setGiscusTheme(document.documentElement.dataset.scheme==="light"?"light":"dark")}})()</script><footer class=site-footer><section class=copyright><img src=/img/beian.png style=width:11px>&nbsp;<a href="https://beian.mps.gov.cn/#/query/webSearch?code=43010302002115" rel=noreferrer target=_blank>湘公网安备43010302002115</a>&nbsp;&nbsp;<a href=https://beian.miit.gov.cn/ target=_blank>湘ICP备2024097599号</a>&nbsp; &nbsp; | &nbsp;
+&copy;
+2024 -
+2025 Scale Data Search</section><section class=powerby>This site has been running for <span id=runningdays></span> &nbsp;
+Built with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> &nbsp;
+Theme <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.30.0>Stack</a></b> designed by <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> &nbsp;</section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js defer></script><style>:root{--code-font-family:"JetBrains Mono"}code{font-size:1.4rem}pre{font-size:1.4rem}</style><script>(function(){const e=document.createElement("link");e.href="/css/fonts.css",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script><script src=https://cdn.jsdelivr.net/npm/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js></script><script>addBackToTop({diameter:40,backgroundColor:"#ddd",textColor:"red"})</script><script>const translations={days:"days",hours:"hours",minutes:"minutes",seconds:"seconds"};let s1="2024-12-23";s1=new Date(s1.replace(/-/g,"/"));let s2=new Date,timeDifference=s2.getTime()-s1.getTime(),days=Math.floor(timeDifference/(1e3*60*60*24)),hours=Math.floor(timeDifference%(1e3*60*60*24)/(1e3*60*60)),minutes=Math.floor(timeDifference%(1e3*60*60)/(1e3*60)),seconds=Math.floor(timeDifference%(1e3*60)/1e3),result=days+" "+translations.days+" "+hours+" "+translations.hours+" "+minutes+" "+translations.minutes+" "+seconds+" "+translations.seconds;document.getElementById("runningdays").innerHTML=result</script></body></html>

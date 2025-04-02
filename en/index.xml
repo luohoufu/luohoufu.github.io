@@ -1,0 +1,849 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Scale Data Search</title><link>https://blog.searchkit.tech/en/</link><description>Recent content on Scale Data Search</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 02 Apr 2025 08:00:00 +0000</lastBuildDate><atom:link href="https://blog.searchkit.tech/en/index.xml" rel="self" type="application/rss+xml"/><item><title>Fixing Abnormal System Cluster Status in INFINI Console 1.29.0/1.29.1</title><link>https://blog.searchkit.tech/en/p/fix-infini-console-cluster-status/</link><pubDate>Wed, 02 Apr 2025 08:00:00 +0000</pubDate><guid>https://blog.searchkit.tech/en/p/fix-infini-console-cluster-status/</guid><description>&lt;img src="https://blog.searchkit.tech/p/fix-infini-console-cluster-status/cover.png" alt="Featured image of post Fixing Abnormal System Cluster Status in INFINI Console 1.29.0/1.29.1" />&lt;h2 id="introduction">Introduction
+&lt;/h2>&lt;p>Users running &lt;strong>INFINI Console versions 1.29.0 and 1.29.1&lt;/strong> might encounter a specific issue after performing a &lt;strong>fresh initialization&lt;/strong> of the platform. If the underlying system Elasticsearch cluster (the one storing Console&amp;rsquo;s metadata, often named &lt;code>.infini_cluster&lt;/code> or similar) consists of &lt;strong>more than one node&lt;/strong>, the Console UI might incorrectly report the system cluster&amp;rsquo;s health status as abnormal (e.g., yellow or red).&lt;/p>
+&lt;p>This appears to be a display or status detection artifact specific to these versions under the condition of a newly initialized, multi-node system cluster. The underlying Elasticsearch cluster itself is usually healthy (green).&lt;/p>
+&lt;p>This post provides a straightforward workaround to correct the status displayed in the INFINI Console.&lt;/p>
+&lt;h2 id="symptoms">Symptoms
+&lt;/h2>&lt;ul>
+&lt;li>The health status indicator for the &amp;ldquo;System Cluster&amp;rdquo; in the INFINI Console UI shows yellow or red.&lt;/li>
+&lt;li>Accompanying text might indicate an &amp;ldquo;Abnormal&amp;rdquo; or unhealthy status.&lt;/li>
+&lt;li>Checking the actual Elasticsearch system cluster&amp;rsquo;s health directly (e.g., via &lt;code>GET _cluster/health&lt;/code>) shows a &lt;code>status: green&lt;/code>.&lt;/li>
+&lt;li>This issue is observed only on &lt;strong>newly initialized&lt;/strong> deployments of versions 1.29.0 or 1.29.1 with &lt;strong>more than one node&lt;/strong> in the system Elasticsearch cluster.&lt;/li>
+&lt;/ul>
+&lt;h2 id="solution">Solution
+&lt;/h2>&lt;p>The fix involves updating a specific document within the &lt;code>.infini_cluster&lt;/code> index (or the equivalent index storing your Console&amp;rsquo;s cluster configuration). This document represents the system cluster entity within the Console, and we need to manually set its health status label correctly.&lt;/p>
+&lt;p>You can achieve this by running the following &lt;code>_update_by_query&lt;/code> command using Kibana Dev Tools, &lt;code>curl&lt;/code>, or any other tool capable of sending requests to your Elasticsearch cluster.&lt;/p>
+&lt;p>&lt;strong>Command:&lt;/strong>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="err">POST&lt;/span> &lt;span class="err">/.infini_cluster/_update_by_query?conflicts=proceed&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;query&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;term&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;id&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;value&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;infini_default_system_cluster&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;script&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;source&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;ctx._source.labels = [&amp;#39;health_status&amp;#39;: params.status]&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;lang&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;painless&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;params&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;status&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;green&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;strong>Explanation:&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>&lt;code>POST /.infini_cluster/_update_by_query?conflicts=proceed&lt;/code>&lt;/strong>: Targets the &lt;code>.infini_cluster&lt;/code> index (adjust if your system cluster index has a different name) and uses the update-by-query API. &lt;code>conflicts=proceed&lt;/code> ensures that if the document is modified between the query and update phases, the operation skips that document instead of failing.&lt;/li>
+&lt;li>&lt;strong>&lt;code>query&lt;/code>&lt;/strong>: This finds the specific document representing the default system cluster, identified by &lt;code>id: &amp;quot;infini_default_system_cluster&amp;quot;&lt;/code> (verify this ID if you use a custom name).&lt;/li>
+&lt;li>&lt;strong>&lt;code>script&lt;/code>&lt;/strong>: This section performs the update using a Painless script.
+&lt;ul>
+&lt;li>&lt;strong>&lt;code>source: &amp;quot;ctx._source.labels = ['health_status': params.status]&amp;quot;&lt;/code>&lt;/strong>: &lt;strong>Crucially&lt;/strong>, this line attempts to &lt;strong>set or overwrite&lt;/strong> a field named &lt;code>labels&lt;/code> with a map containing only the key &lt;code>health_status&lt;/code> set to the value provided in &lt;code>params.status&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>&lt;code>lang: &amp;quot;painless&amp;quot;&lt;/code>&lt;/strong>: Specifies the scripting language.&lt;/li>
+&lt;li>&lt;strong>&lt;code>params: { &amp;quot;status&amp;quot;: &amp;quot;green&amp;quot; }&lt;/code>&lt;/strong>: Passes the desired status (&amp;ldquo;green&amp;rdquo;) securely into the script.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>Important Considerations Regarding the Script:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>&lt;strong>Verify Field Names:&lt;/strong> The provided script uses &lt;code>labels&lt;/code> and &lt;code>health_status&lt;/code>. &lt;strong>Please double-check if these are the exact field names INFINI Console 1.29.x uses internally to store the health status label.&lt;/strong> It&amp;rsquo;s possible the intended fields might be &lt;code>labels&lt;/code> and &lt;code>health_status&lt;/code> (without the &amp;lsquo;1&amp;rsquo;). If using &lt;code>labels&lt;/code> doesn&amp;rsquo;t work, try the alternative script below which targets &lt;code>labels.health_status&lt;/code>:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="err">POST&lt;/span> &lt;span class="err">/.infini_cluster/_update_by_query?conflicts=proceed&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;query&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;term&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;id&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;value&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;infini_default_system_cluster&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;script&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;source&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> if (ctx._source.labels == null) {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> ctx._source.labels = [:];
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> ctx._source.labels.health_status = params.status;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> &amp;#34;&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;lang&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;painless&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;params&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;status&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;green&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>Overwriting vs. Merging:&lt;/strong> The original script &lt;em>replaces&lt;/em> the entire &lt;code>labels&lt;/code> field. If &lt;code>labels&lt;/code> might contain other important data, using the alternative script (targeting &lt;code>labels.health_status&lt;/code>) is safer as it only adds/updates the specific key.&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Running the Command:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Kibana:&lt;/strong> Paste the command into Kibana &amp;gt; Dev Tools and run it.&lt;/li>
+&lt;li>&lt;strong>curl:&lt;/strong>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">curl -X POST &lt;span class="s2">&amp;#34;http://YOUR_ELASTICSEARCH_HOST:9200/.infini_cluster/_update_by_query?conflicts=proceed&amp;#34;&lt;/span> -H &lt;span class="s1">&amp;#39;Content-Type: application/json&amp;#39;&lt;/span> -d&lt;span class="s1">&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1">{
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;query&amp;#34;: {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;term&amp;#34;: {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;id&amp;#34;: {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;value&amp;#34;: &amp;#34;infini_default_system_cluster&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> },
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;script&amp;#34;: {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;source&amp;#34;: &amp;#34;ctx._source.labels = [&amp;#39;&lt;/span>health_status&lt;span class="s1">&amp;#39;: params.status]&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;lang&amp;#34;: &amp;#34;painless&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;params&amp;#34;: {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> &amp;#34;status&amp;#34;: &amp;#34;green&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s1">}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>(Replace &lt;code>YOUR_ELASTICSEARCH_HOST:9200&lt;/code> and potentially the script content based on the verification step above).&lt;/li>
+&lt;/ul>
+&lt;h2 id="verification-after-fix">Verification After Fix
+&lt;/h2>&lt;p>After successfully running the &lt;code>_update_by_query&lt;/code> command:&lt;/p>
+&lt;ol>
+&lt;li>Wait a few moments for potential caching to expire.&lt;/li>
+&lt;li>Refresh the INFINI Console web interface.&lt;/li>
+&lt;li>The system cluster status indicator should now correctly display as &lt;strong>green&lt;/strong> (or normal).&lt;/li>
+&lt;/ol>
+&lt;h2 id="conclusion">Conclusion
+&lt;/h2>&lt;p>This workaround addresses the specific cosmetic issue of an incorrect system cluster status display in INFINI Console 1.29.0 and 1.29.1 for newly initialized multi-node setups. By manually updating the relevant document using &lt;code>_update_by_query&lt;/code>, you can restore the correct status representation in the UI. Remember to verify the exact field names (&lt;code>labels.health_status&lt;/code> vs. &lt;code>labels.health_status&lt;/code>) if the initial command doesn&amp;rsquo;t yield the expected result. Future versions of INFINI Console are likely to contain a permanent fix for this initialization behavior.&lt;/p></description></item><item><title>Getting Started with Operator Development Series (Part 1): Hello World!</title><link>https://blog.searchkit.tech/en/p/operator/</link><pubDate>Tue, 01 Apr 2025 08:00:00 +0000</pubDate><guid>https://blog.searchkit.tech/en/p/operator/</guid><description>&lt;img src="https://blog.searchkit.tech/p/operator/cover.png" alt="Featured image of post Getting Started with Operator Development Series (Part 1): Hello World!" />&lt;h2 id="background">Background
+&lt;/h2>&lt;p>Our company recently decided to migrate our products to a Kubernetes environment. To better manage and automate our applications, we chose to use Kubernetes Operators. This blog series will document our process of learning and developing Operators, and we hope it can help others get started with Operator development as well.&lt;/p>
+&lt;h2 id="target-audience">Target Audience
+&lt;/h2>&lt;ul>
+&lt;li>Developers and operations personnel with some understanding of Kubernetes.&lt;/li>
+&lt;li>Individuals who want to use Operators to automate application management.&lt;/li>
+&lt;li>People with a basic understanding of the Go language.&lt;/li>
+&lt;/ul>
+&lt;h2 id="prerequisites">Prerequisites
+&lt;/h2>&lt;p>Before you begin, you&amp;rsquo;ll need the following environment set up:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>&lt;strong>Go Language Environment (version 1.23 or higher):&lt;/strong> Operators are typically developed in Go. You need to install the Go environment, preferably version 1.21 or later (the example uses features compatible with 1.21+, but 1.23+ is recommended per the Kubebuilder requirement often seen). You can download the installation package from &lt;a class="link" href="https://go.dev/dl/" target="_blank" rel="noopener"
+>https://go.dev/dl/&lt;/a>. After installation, please configure your &lt;code>GOPATH&lt;/code> and &lt;code>PATH&lt;/code> environment variables correctly.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>Kubernetes Cluster:&lt;/strong> You need an accessible Kubernetes cluster to deploy and test the Operator. You can use tools like Minikube, Kind, or any other Kubernetes distribution.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>kubectl Command-Line Tool:&lt;/strong> &lt;code>kubectl&lt;/code> is the Kubernetes command-line tool used to interact with the cluster. Ensure you have &lt;code>kubectl&lt;/code> installed, configured, and can connect to your Kubernetes cluster.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>Kubebuilder (version 3.0 or higher):&lt;/strong> Kubebuilder is a framework for rapidly building Kubernetes Operators. Using Kubebuilder simplifies the development process and generates necessary boilerplate code. You can install Kubebuilder using the following commands:&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Adjust GOOS/GOARCH if needed, check Kubebuilder docs for specific versions&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">OS&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="k">$(&lt;/span>go env GOOS&lt;span class="k">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">ARCH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="k">$(&lt;/span>go env GOARCH&lt;span class="k">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Verify KubeBuilder version compatibility with your Go and K8s versions&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Example for a specific version, check latest releases on Kubebuilder site&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># curl -L -o kubebuilder https://github.com/kubernetes-sigs/kubebuilder/releases/download/v3.x.y/kubebuilder_${OS}_${ARCH}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Or, get the latest (use with caution, check compatibility)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">curl -L -o kubebuilder &lt;span class="s2">&amp;#34;https://go.kubebuilder.io/dl/latest/&lt;/span>&lt;span class="k">$(&lt;/span>go env GOOS&lt;span class="k">)&lt;/span>&lt;span class="s2">/&lt;/span>&lt;span class="k">$(&lt;/span>go env GOARCH&lt;span class="k">)&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Make it executable and move to a bin directory&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">chmod +x kubebuilder
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo mv kubebuilder /usr/local/bin/ &lt;span class="c1"># Or another directory in your PATH, like $HOME/go/bin&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;pre>&lt;code>&amp;gt; Ensure the directory where you place `kubebuilder` (e.g., `/usr/local/bin` or `$HOME/go/bin`) is in your `PATH` environment variable. You can run `kubebuilder version` to verify the installation.
+&lt;/code>&lt;/pre>
+&lt;ul>
+&lt;li>&lt;strong>Docker (Optional):&lt;/strong> You need Docker installed if you intend to build Docker images for your Operator.&lt;/li>
+&lt;/ul>
+&lt;blockquote>
+&lt;p>My development environment is macOS (arm64) with OrbStack.&lt;/p>&lt;/blockquote>
+&lt;h2 id="what-is-an-operator">What is an Operator?
+&lt;/h2>&lt;p>Simply put, an Operator is an extension to Kubernetes that uses Custom Resources (CRs) to automate the management of applications. Operators allow us to manage complex applications (like databases, message queues, etc.) in the same way we manage built-in Kubernetes resources.&lt;/p>
+&lt;h2 id="why-choose-operators">Why Choose Operators?
+&lt;/h2>&lt;p>Operators provide a declarative way to manage the lifecycle of applications, including deployment, upgrades, backups, and recovery. They can simplify operational workflows, increase automation, and ensure that the application state matches the desired configuration.&lt;/p>
+&lt;h2 id="our-first-operator-hello-world">Our First Operator: Hello World
+&lt;/h2>&lt;p>This Operator will watch for a Custom Resource named &lt;code>HelloWorld&lt;/code> and create a Pod in Kubernetes. This Pod will run a simple application that prints &amp;ldquo;Hello World&amp;rdquo;.&lt;/p>
+&lt;h3 id="1-initialize-the-kubebuilder-project">1. Initialize the Kubebuilder Project
+&lt;/h3>&lt;p>First, we need to create a new project using Kubebuilder. Create a new directory within your &lt;code>GOPATH&lt;/code> (or any preferred location if using Go modules outside GOPATH), for example, &lt;code>hello-world-operator&lt;/code>. Then, navigate into that directory and run the following command:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Replace example.com and repo path with your own details if desired&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubebuilder init --domain example.com --repo github.com/your-user/hello-world-operator
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;blockquote>
+&lt;p>&lt;strong>Note:&lt;/strong> The original used &lt;code>--domain infini.cloud --repo github.com/infinilabs/hello-world-operator&lt;/code>. Remember to replace &lt;code>github.com/your-user/hello-world-operator&lt;/code> with your actual repository path if you plan to host it. The domain is used for the API group.&lt;/p>&lt;/blockquote>
+&lt;p>This command initializes a new Kubebuilder project, generating several necessary files and directories.&lt;/p>
+&lt;h3 id="2-create-the-custom-resource-definition-crd">2. Create the Custom Resource Definition (CRD)
+&lt;/h3>&lt;p>Next, we define the structure for our &lt;code>HelloWorld&lt;/code> resource. Run the following command:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">kubebuilder create api --group example --version v1alpha1 --kind HelloWorld
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>This command creates a new API definition, generating files including &lt;code>api/v1alpha1/helloworld_types.go&lt;/code> (for the type definition) and &lt;code>controllers/helloworld_controller.go&lt;/code> (for the reconciliation logic).&lt;/p>
+&lt;p>Edit the &lt;code>api/v1alpha1/helloworld_types.go&lt;/code> file. Modify the &lt;code>HelloWorldSpec&lt;/code> definition to include &lt;code>name&lt;/code> and &lt;code>message&lt;/code> fields:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// HelloWorldSpec defines the desired state of HelloWorld&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">HelloWorldSpec&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Important: Run &amp;#34;make&amp;#34; to regenerate code after modifying this file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Name specifies the name for resources created by this HelloWorld resource.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// +optional&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="s">`json:&amp;#34;name,omitempty&amp;#34;`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Message is the message to be printed by the pod.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Message&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="s">`json:&amp;#34;message&amp;#34;`&lt;/span> &lt;span class="c1">// Made mandatory for simplicity in example&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// HelloWorldStatus defines the observed state of HelloWorld&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">HelloWorldStatus&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Important: Run &amp;#34;make&amp;#34; to regenerate code after modifying this file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// PodName is the name of the Pod created by the HelloWorld resource.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// +optional&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">PodName&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="s">`json:&amp;#34;podName,omitempty&amp;#34;`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;blockquote>
+&lt;p>&lt;strong>Note:&lt;/strong> I&amp;rsquo;ve made &lt;code>Message&lt;/code> mandatory (&lt;code>json:&amp;quot;message&amp;quot;&lt;/code>) as the controller logic uses it directly. Added &lt;code>+optional&lt;/code> markers and a basic &lt;code>Status&lt;/code> field as good practice, although the controller logic below doesn&amp;rsquo;t update the status yet. Run &lt;code>make manifests&lt;/code> after editing this file.&lt;/p>&lt;/blockquote>
+&lt;h3 id="3-implement-the-reconcile-logic">3. Implement the Reconcile Logic
+&lt;/h3>&lt;p>Edit the &lt;code>controllers/helloworld_controller.go&lt;/code> file. Implement the &lt;code>Reconcile&lt;/code> function to create a Pod running a &lt;code>busybox&lt;/code> image that echoes the &lt;code>message&lt;/code> defined in the &lt;code>HelloWorld&lt;/code> resource.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt"> 10
+&lt;/span>&lt;span class="lnt"> 11
+&lt;/span>&lt;span class="lnt"> 12
+&lt;/span>&lt;span class="lnt"> 13
+&lt;/span>&lt;span class="lnt"> 14
+&lt;/span>&lt;span class="lnt"> 15
+&lt;/span>&lt;span class="lnt"> 16
+&lt;/span>&lt;span class="lnt"> 17
+&lt;/span>&lt;span class="lnt"> 18
+&lt;/span>&lt;span class="lnt"> 19
+&lt;/span>&lt;span class="lnt"> 20
+&lt;/span>&lt;span class="lnt"> 21
+&lt;/span>&lt;span class="lnt"> 22
+&lt;/span>&lt;span class="lnt"> 23
+&lt;/span>&lt;span class="lnt"> 24
+&lt;/span>&lt;span class="lnt"> 25
+&lt;/span>&lt;span class="lnt"> 26
+&lt;/span>&lt;span class="lnt"> 27
+&lt;/span>&lt;span class="lnt"> 28
+&lt;/span>&lt;span class="lnt"> 29
+&lt;/span>&lt;span class="lnt"> 30
+&lt;/span>&lt;span class="lnt"> 31
+&lt;/span>&lt;span class="lnt"> 32
+&lt;/span>&lt;span class="lnt"> 33
+&lt;/span>&lt;span class="lnt"> 34
+&lt;/span>&lt;span class="lnt"> 35
+&lt;/span>&lt;span class="lnt"> 36
+&lt;/span>&lt;span class="lnt"> 37
+&lt;/span>&lt;span class="lnt"> 38
+&lt;/span>&lt;span class="lnt"> 39
+&lt;/span>&lt;span class="lnt"> 40
+&lt;/span>&lt;span class="lnt"> 41
+&lt;/span>&lt;span class="lnt"> 42
+&lt;/span>&lt;span class="lnt"> 43
+&lt;/span>&lt;span class="lnt"> 44
+&lt;/span>&lt;span class="lnt"> 45
+&lt;/span>&lt;span class="lnt"> 46
+&lt;/span>&lt;span class="lnt"> 47
+&lt;/span>&lt;span class="lnt"> 48
+&lt;/span>&lt;span class="lnt"> 49
+&lt;/span>&lt;span class="lnt"> 50
+&lt;/span>&lt;span class="lnt"> 51
+&lt;/span>&lt;span class="lnt"> 52
+&lt;/span>&lt;span class="lnt"> 53
+&lt;/span>&lt;span class="lnt"> 54
+&lt;/span>&lt;span class="lnt"> 55
+&lt;/span>&lt;span class="lnt"> 56
+&lt;/span>&lt;span class="lnt"> 57
+&lt;/span>&lt;span class="lnt"> 58
+&lt;/span>&lt;span class="lnt"> 59
+&lt;/span>&lt;span class="lnt"> 60
+&lt;/span>&lt;span class="lnt"> 61
+&lt;/span>&lt;span class="lnt"> 62
+&lt;/span>&lt;span class="lnt"> 63
+&lt;/span>&lt;span class="lnt"> 64
+&lt;/span>&lt;span class="lnt"> 65
+&lt;/span>&lt;span class="lnt"> 66
+&lt;/span>&lt;span class="lnt"> 67
+&lt;/span>&lt;span class="lnt"> 68
+&lt;/span>&lt;span class="lnt"> 69
+&lt;/span>&lt;span class="lnt"> 70
+&lt;/span>&lt;span class="lnt"> 71
+&lt;/span>&lt;span class="lnt"> 72
+&lt;/span>&lt;span class="lnt"> 73
+&lt;/span>&lt;span class="lnt"> 74
+&lt;/span>&lt;span class="lnt"> 75
+&lt;/span>&lt;span class="lnt"> 76
+&lt;/span>&lt;span class="lnt"> 77
+&lt;/span>&lt;span class="lnt"> 78
+&lt;/span>&lt;span class="lnt"> 79
+&lt;/span>&lt;span class="lnt"> 80
+&lt;/span>&lt;span class="lnt"> 81
+&lt;/span>&lt;span class="lnt"> 82
+&lt;/span>&lt;span class="lnt"> 83
+&lt;/span>&lt;span class="lnt"> 84
+&lt;/span>&lt;span class="lnt"> 85
+&lt;/span>&lt;span class="lnt"> 86
+&lt;/span>&lt;span class="lnt"> 87
+&lt;/span>&lt;span class="lnt"> 88
+&lt;/span>&lt;span class="lnt"> 89
+&lt;/span>&lt;span class="lnt"> 90
+&lt;/span>&lt;span class="lnt"> 91
+&lt;/span>&lt;span class="lnt"> 92
+&lt;/span>&lt;span class="lnt"> 93
+&lt;/span>&lt;span class="lnt"> 94
+&lt;/span>&lt;span class="lnt"> 95
+&lt;/span>&lt;span class="lnt"> 96
+&lt;/span>&lt;span class="lnt"> 97
+&lt;/span>&lt;span class="lnt"> 98
+&lt;/span>&lt;span class="lnt"> 99
+&lt;/span>&lt;span class="lnt">100
+&lt;/span>&lt;span class="lnt">101
+&lt;/span>&lt;span class="lnt">102
+&lt;/span>&lt;span class="lnt">103
+&lt;/span>&lt;span class="lnt">104
+&lt;/span>&lt;span class="lnt">105
+&lt;/span>&lt;span class="lnt">106
+&lt;/span>&lt;span class="lnt">107
+&lt;/span>&lt;span class="lnt">108
+&lt;/span>&lt;span class="lnt">109
+&lt;/span>&lt;span class="lnt">110
+&lt;/span>&lt;span class="lnt">111
+&lt;/span>&lt;span class="lnt">112
+&lt;/span>&lt;span class="lnt">113
+&lt;/span>&lt;span class="lnt">114
+&lt;/span>&lt;span class="lnt">115
+&lt;/span>&lt;span class="lnt">116
+&lt;/span>&lt;span class="lnt">117
+&lt;/span>&lt;span class="lnt">118
+&lt;/span>&lt;span class="lnt">119
+&lt;/span>&lt;span class="lnt">120
+&lt;/span>&lt;span class="lnt">121
+&lt;/span>&lt;span class="lnt">122
+&lt;/span>&lt;span class="lnt">123
+&lt;/span>&lt;span class="lnt">124
+&lt;/span>&lt;span class="lnt">125
+&lt;/span>&lt;span class="lnt">126
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">package&lt;/span> &lt;span class="nx">controllers&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;context&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;fmt&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">corev1&lt;/span> &lt;span class="s">&amp;#34;k8s.io/api/core/v1&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">apierrors&lt;/span> &lt;span class="s">&amp;#34;k8s.io/apimachinery/pkg/api/errors&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">metav1&lt;/span> &lt;span class="s">&amp;#34;k8s.io/apimachinery/pkg/apis/meta/v1&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;k8s.io/apimachinery/pkg/runtime&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ctrl&lt;/span> &lt;span class="s">&amp;#34;sigs.k8s.io/controller-runtime&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;sigs.k8s.io/controller-runtime/pkg/client&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;sigs.k8s.io/controller-runtime/pkg/log&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">examplev1alpha1&lt;/span> &lt;span class="s">&amp;#34;github.com/your-user/hello-world-operator/api/v1alpha1&amp;#34;&lt;/span> &lt;span class="c1">// !! Update this import path !!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// HelloWorldReconciler reconciles a HelloWorld object&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">HelloWorldReconciler&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">client&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Client&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Scheme&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">runtime&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Scheme&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//+kubebuilder:rbac:groups=example.com,resources=helloworlds,verbs=get;list;watch;create;update;patch;delete&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//+kubebuilder:rbac:groups=example.com,resources=helloworlds/status,verbs=get;update;patch&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//+kubebuilder:rbac:groups=example.com,resources=helloworlds/finalizers,verbs=update&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// Reconcile is part of the main kubernetes reconciliation loop which aims to&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// move the current state of the cluster closer to the desired state.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">r&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">HelloWorldReconciler&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Reconcile&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ctx&lt;/span> &lt;span class="nx">context&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Context&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">req&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Request&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">error&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">FromContext&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ctx&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Reconciling HelloWorld&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 1. Fetch the HelloWorld instance&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">helloWorld&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">examplev1alpha1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HelloWorld&lt;/span>&lt;span class="p">{}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">r&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ctx&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">req&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">NamespacedName&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nx">apierrors&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">IsNotFound&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Object not found, likely deleted. Return without error.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;HelloWorld resource not found. Ignoring since object must be deleted&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">{},&lt;/span> &lt;span class="kc">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Error reading the object - requeue the request.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Failed to get HelloWorld&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">{},&lt;/span> &lt;span class="nx">err&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Use spec.Name if provided, otherwise default to CR name for the Pod name prefix&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">podNamePrefix&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Spec&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nx">podNamePrefix&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">podNamePrefix&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">podName&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">podNamePrefix&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s">&amp;#34;-pod&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 2. Define the desired Pod&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">desiredPod&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">corev1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pod&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ObjectMeta&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">metav1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ObjectMeta&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">podName&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Namespace&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Namespace&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Labels&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kd">map&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="kt">string&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="kt">string&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;app&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">// Label with the CR name for easier selection&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Spec&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">corev1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">PodSpec&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Containers&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[]&lt;/span>&lt;span class="nx">corev1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Container&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;hello-world-container&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">// More descriptive container name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Image&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;busybox&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Use echo and sleep; echo prints the message from the spec&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Command&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[]&lt;/span>&lt;span class="kt">string&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="s">&amp;#34;/bin/sh&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;-c&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Sprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;echo &amp;#39;Message from %s: %s&amp;#39;; sleep 3600&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Spec&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Message&lt;/span>&lt;span class="p">)},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">RestartPolicy&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">corev1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">RestartPolicyOnFailure&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">// Example policy&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 3. Set HelloWorld instance as the owner and controller of the Pod&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// This ensures the Pod is garbage collected when the HelloWorld CR is deleted&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">SetControllerReference&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">helloWorld&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">r&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Scheme&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Failed to set controller reference for Pod&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">{},&lt;/span> &lt;span class="nx">err&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 4. Check if the Pod already exists&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">foundPod&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">corev1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pod&lt;/span>&lt;span class="p">{}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">err&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">r&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ctx&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">client&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ObjectKey&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Namespace&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Namespace&lt;/span>&lt;span class="p">},&lt;/span> &lt;span class="nx">foundPod&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// If Pod does not exist, create it&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">apierrors&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">IsNotFound&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Creating a new Pod&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Pod.Namespace&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Namespace&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Pod.Name&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">err&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">r&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Create&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ctx&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Failed to create new Pod&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Pod.Namespace&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Namespace&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Pod.Name&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">desiredPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">{},&lt;/span> &lt;span class="nx">err&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Pod created successfully - don&amp;#39;t requeue immediately, wait for watch event&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Pod created successfully&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">{},&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="c1">// Usually better to rely on watches than requeueing immediately&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// Other error trying to get the Pod&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Failed to get Pod&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">{},&lt;/span> &lt;span class="nx">err&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 5. Pod already exists - potentially check/update if needed (skipped for this simple example)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Skip reconcile: Pod already exists&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Pod.Namespace&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">foundPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Namespace&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;Pod.Name&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">foundPod&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Name&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// If we needed to update the pod based on CR changes, we would do it here.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// For this example, we do nothing if the Pod exists.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// (Optional) Update HelloWorld status - Good practice but omitted for brevity here&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// helloWorld.Status.PodName = foundPod.Name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// if err := r.Status().Update(ctx, helloWorld); err != nil {&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// log.Error(err, &amp;#34;Failed to update HelloWorld status&amp;#34;)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// return ctrl.Result{}, err&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// }&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Result&lt;/span>&lt;span class="p">{},&lt;/span> &lt;span class="kc">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// SetupWithManager sets up the controller with the Manager.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">r&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">HelloWorldReconciler&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">SetupWithManager&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">mgr&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Manager&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="kt">error&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ctrl&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">NewControllerManagedBy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">mgr&lt;/span>&lt;span class="p">).&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">For&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">examplev1alpha1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HelloWorld&lt;/span>&lt;span class="p">{}).&lt;/span> &lt;span class="c1">// Watch for HelloWorld resources&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">Owns&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">corev1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pod&lt;/span>&lt;span class="p">{}).&lt;/span> &lt;span class="c1">// Watch for Pods owned by HelloWorld&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">Complete&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">r&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;blockquote>
+&lt;p>&lt;strong>Important:&lt;/strong> Replace &lt;code>github.com/your-user/hello-world-operator&lt;/code> in the import path with the actual path you used in &lt;code>kubebuilder init --repo&lt;/code>. Run &lt;code>make manifests generate&lt;/code> after editing the controller file to update generated code and manifests.&lt;/p>&lt;/blockquote>
+&lt;h3 id="4-install-the-crd-into-the-kubernetes-cluster">4. Install the CRD into the Kubernetes Cluster
+&lt;/h3>&lt;p>Run the following command to install the Custom Resource Definition into your cluster:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">make install
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="5-run-the-operator">5. Run the Operator
+&lt;/h3>&lt;p>Run the following command to run the Operator locally (it will connect to your configured Kubernetes cluster):&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">make run
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;blockquote>
+&lt;p>Keep this terminal running.&lt;/p>&lt;/blockquote>
+&lt;h3 id="6-create-the-helloworld-resource">6. Create the HelloWorld Resource
+&lt;/h3>&lt;p>In a &lt;strong>new terminal&lt;/strong>, create a file named &lt;code>my-hello-world.yaml&lt;/code> with the following content:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">apiVersion&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">example.com/v1alpha1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Ensure group matches your --group flag&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">kind&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">HelloWorld&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">metadata&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">my-hello-world-sample&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Changed name slightly to avoid conflict with potential Pod name logic&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">namespace&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">default&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Specify namespace or use kubectl default&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">spec&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">my-hello&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Name used for the Pod prefix&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">message&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;Hello World from my first Operator!&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Apply this resource using &lt;code>kubectl&lt;/code>:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">kubectl apply -f my-hello-world.yaml
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="7-verify">7. Verify
+&lt;/h3>&lt;p>Check if the Pod was created (using the &lt;code>spec.name&lt;/code> field + &lt;code>-pod&lt;/code> suffix as defined in the controller):&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">kubectl get pods -n default
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>You should see a Pod named &lt;code>my-hello-pod&lt;/code> (or similar based on your spec.name).&lt;/p>
+&lt;p>Check the logs of the Pod to confirm it printed the message:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Replace my-hello-pod with the actual pod name from &amp;#39;kubectl get pods&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl logs my-hello-pod -n default
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>You should see output similar to: &lt;code>Message from my-hello-world-sample: Hello World from my first Operator!&lt;/code>&lt;/p>
+&lt;h2 id="conclusion">Conclusion
+&lt;/h2>&lt;p>Congratulations on creating your first Operator! While this example is simple, it demonstrates the fundamental principle of Operators: watching Custom Resources and managing Kubernetes resources based on their desired state. In the upcoming parts of this series, we will delve into more advanced Operator features.&lt;/p>
+&lt;p>Stay tuned for the next post!&lt;/p></description></item><item><title>Reliable, Scalable, and Maintainable Applications</title><link>https://blog.searchkit.tech/en/p/ddia/</link><pubDate>Thu, 06 Mar 2025 00:00:00 +0000</pubDate><guid>https://blog.searchkit.tech/en/p/ddia/</guid><description>&lt;img src="https://blog.searchkit.tech/p/ddia/cover.png" alt="Featured image of post Reliable, Scalable, and Maintainable Applications" />&lt;blockquote>
+&lt;p>&lt;em>The Internet was done so well that most people think of it as a natural resource like the Pacific Ocean, rather than something that was man-made. When was the last time a tech‐ nology with a scale like that was so error-free?&lt;/em>&lt;/p>
+&lt;p>— &lt;a class="link" href="http://www.drdobbs.com/architecture-and-design/interview-with-alan-kay/240003442" target="_blank" rel="noopener"
+>Alan Kay&lt;/a>, in interview with &lt;em>Dr Dobb’s Journal&lt;/em> (2012)&lt;/p>&lt;/blockquote>
+&lt;hr>
+&lt;p>Many applications today are &lt;em>data-intensive&lt;/em>, as opposed to &lt;em>compute-intensive&lt;/em>. Raw CPU power is rarely a limiting factor for these applications—bigger problems are usually the amount of data, the complexity of data, and the speed at which it is changing.&lt;/p>
+&lt;p>A data-intensive application is typically built from standard building blocks that pro‐ vide commonly needed functionality. For example, many applications need to:&lt;/p>
+&lt;ul>
+&lt;li>Store data so that they, or another application, can find it again later (&lt;em>databases&lt;/em>)&lt;/li>
+&lt;li>Remember the result of an expensive operation, to speed up reads (&lt;em>caches&lt;/em>)&lt;/li>
+&lt;li>Allow users to search data by keyword or filter it in various ways (&lt;em>search indexes&lt;/em>)&lt;/li>
+&lt;li>Send a message to another process, to be handled asynchronously (&lt;em>stream pro‐ cessing&lt;/em>)&lt;/li>
+&lt;li>Periodically crunch a large amount of accumulated data (&lt;em>batch processing&lt;/em>)&lt;/li>
+&lt;/ul>
+&lt;p>If that sounds painfully obvious, that’s just because these &lt;em>data systems&lt;/em> are such a suc‐ cessful abstraction: we use them all the time without thinking too much. When build‐ ing an application, most engineers wouldn’t dream of writing a new data storage engine from scratch, because databases are a perfectly good tool for the job.&lt;/p>
+&lt;p>But reality is not that simple. There are many database systems with different charac‐ teristics, because different applications have different requirements. There are vari‐ ous approaches to caching, several ways of building search indexes, and so on. When building an application, we still need to figure out which tools and which approaches are the most appropriate for the task at hand. And it can be hard to combine tools when you need to do something that a single tool cannot do alone.&lt;/p>
+&lt;p>This book is a journey through both the principles and the practicalities of data sys‐ tems, and how you can use them to build data-intensive applications. We will explore what different tools have in common, what distinguishes them, and how they achieve their characteristics.&lt;/p>
+&lt;p>In this chapter, we will start by exploring the fundamentals of what we are trying to achieve: reliable, scalable, and maintainable data systems. We’ll clarify what those things mean, outline some ways of thinking about them, and go over the basics that we will need for later chapters. In the following chapters we will continue layer by layer, looking at different design decisions that need to be considered when working on a data-intensive application.&lt;/p>
+&lt;h2 id="heading">……
+&lt;/h2>&lt;h2 id="summary">Summary
+&lt;/h2>&lt;p>In this chapter, we have explored some fundamental ways of thinking about data-intensive applications. These principles will guide us through the rest of the book, where we dive into deep technical detail.&lt;/p>
+&lt;p>An application has to meet various requirements in order to be useful. There are &lt;em>functional requirements&lt;/em> (what it should do, such as allowing data to be stored, retrieved, searched, and processed in various ways), and some &lt;em>nonfunctional require‐ ments&lt;/em> (general properties like security, reliability, compliance, scalability, compatibil‐ ity, and maintainability). In this chapter we discussed reliability, scalability, and maintainability in detail.&lt;/p>
+&lt;p>&lt;em>Reliability&lt;/em> means making systems work correctly, even when faults occur. Faults can be in hardware (typically random and uncorrelated), software (bugs are typically sys‐ tematic and hard to deal with), and humans (who inevitably make mistakes from time to time). Fault-tolerance techniques can hide certain types of faults from the end user.&lt;/p>
+&lt;p>&lt;em>Scalability&lt;/em> means having strategies for keeping performance good, even when load increases. In order to discuss scalability, we first need ways of describing load and performance quantitatively. We briefly looked at Twitter’s home timelines as an example of describing load, and response time percentiles as a way of measuring performance. In a scalable system, you can add processing capacity in order to remain reliable under high load.&lt;/p>
+&lt;p>&lt;em>Maintainability&lt;/em> has many facets, but in essence it’s about making life better for the engineering and operations teams who need to work with the system. Good abstrac‐ tions can help reduce complexity and make the system easier to modify and adapt for new use cases. Good operability means having good visibility into the system’s health, and having effective ways of managing it.&lt;/p>
+&lt;p>There is unfortunately no easy fix for making applications reliable, scalable, or main‐ tainable. However, there are certain patterns and techniques that keep reappearing in different kinds of applications. In the next few chapters we will take a look at some examples of data systems and analyze how they work toward those goals.&lt;/p>
+&lt;p>Later in the book, in &lt;a class="link" href="part-iii.md" >Part III&lt;/a>, we will look at patterns for systems that consist of sev‐ eral components working together, such as the one in &lt;a class="link" href="fig1-1.png" >Figure 1-1&lt;/a>.&lt;/p>
+&lt;h2 id="references">References
+&lt;/h2>&lt;hr>
+&lt;ol>
+&lt;li>
+&lt;p>Michael Stonebraker and Uğur Çetintemel: “&lt;a class="link" href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.9136&amp;amp;rep=rep1&amp;amp;type=pdf" target="_blank" rel="noopener"
+>&amp;lsquo;One Size Fits All&amp;rsquo;: An Idea Whose Time Has Come and Gone&lt;/a>,” at &lt;em>21st International Conference on Data Engineering&lt;/em> (ICDE), April 2005.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Walter L. Heimerdinger and Charles B. Weinstock: “&lt;a class="link" href="http://www.sei.cmu.edu/reports/92tr033.pdf" target="_blank" rel="noopener"
+>A Conceptual Framework for System Fault Tolerance&lt;/a>,” Technical Report CMU/SEI-92-TR-033, Software Engineering Institute, Carnegie Mellon University, October 1992.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Ding Yuan, Yu Luo, Xin Zhuang, et al.: “&lt;a class="link" href="https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf" target="_blank" rel="noopener"
+>Simple Testing Can Prevent Most Critical Failures: An Analysis of Production Failures in Distributed Data-Intensive Systems&lt;/a>,” at &lt;em>11th USENIX Symposium on Operating Systems Design and Implementation&lt;/em> (OSDI), October 2014.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Yury Izrailevsky and Ariel Tseitlin: “&lt;a class="link" href="http://techblog.netflix.com/2011/07/netflix-simian-army.html" target="_blank" rel="noopener"
+>The Netflix Simian Army&lt;/a>,” &lt;em>techblog.netflix.com&lt;/em>, July 19, 2011.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Daniel Ford, François Labelle, Florentina I. Popovici, et al.: “&lt;a class="link" href="http://research.google.com/pubs/archive/36737.pdf" target="_blank" rel="noopener"
+>Availability in Globally Distributed Storage Systems&lt;/a>,” at &lt;em>9th USENIX Symposium on Operating Systems Design and Implementation&lt;/em> (OSDI),
+October 2010.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Brian Beach: “&lt;a class="link" href="https://www.backblaze.com/blog/hard-drive-reliability-update-september-2014/" target="_blank" rel="noopener"
+>Hard Drive Reliability Update – Sep 2014&lt;/a>,” &lt;em>backblaze.com&lt;/em>, September 23, 2014.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Laurie Voss: “&lt;a class="link" href="https://web.archive.org/web/20160429075023/http://blog.awe.sm/2012/12/18/aws-the-good-the-bad-and-the-ugly/" target="_blank" rel="noopener"
+>AWS: The Good, the Bad and the Ugly&lt;/a>,” &lt;em>blog.awe.sm&lt;/em>, December 18, 2012.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Haryadi S. Gunawi, Mingzhe Hao, Tanakorn Leesatapornwongsa, et al.: “&lt;a class="link" href="http://ucare.cs.uchicago.edu/pdf/socc14-cbs.pdf" target="_blank" rel="noopener"
+>What Bugs Live in the Cloud?&lt;/a>,” at &lt;em>5th ACM Symposium on Cloud Computing&lt;/em> (SoCC), November 2014. &lt;a class="link" href="http://dx.doi.org/10.1145/2670979.2670986" target="_blank" rel="noopener"
+>doi:10.1145/2670979.2670986&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Nelson Minar: “&lt;a class="link" href="http://www.somebits.com/weblog/tech/bad/leap-second-2012.html" target="_blank" rel="noopener"
+>Leap Second Crashes Half the Internet&lt;/a>,” &lt;em>somebits.com&lt;/em>, July 3, 2012.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Amazon Web Services: “&lt;a class="link" href="http://aws.amazon.com/message/65648/" target="_blank" rel="noopener"
+>Summary of the Amazon EC2 and Amazon RDS Service Disruption in the US East Region&lt;/a>,” &lt;em>aws.amazon.com&lt;/em>, April 29, 2011.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Richard I. Cook: “&lt;a class="link" href="http://web.mit.edu/2.75/resources/random/How%20Complex%20Systems%20Fail.pdf" target="_blank" rel="noopener"
+>How Complex Systems Fail&lt;/a>,” Cognitive Technologies Laboratory, April 2000.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Jay Kreps: “&lt;a class="link" href="http://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability" target="_blank" rel="noopener"
+>Getting Real About Distributed System Reliability&lt;/a>,” &lt;em>blog.empathybox.com&lt;/em>, March 19, 2012.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>David Oppenheimer, Archana Ganapathi, and David A. Patterson: “&lt;a class="link" href="http://static.usenix.org/legacy/events/usits03/tech/full_papers/oppenheimer/oppenheimer.pdf" target="_blank" rel="noopener"
+>Why Do Internet Services Fail, and What Can Be Done About It?&lt;/a>,” at &lt;em>4th USENIX Symposium on Internet Technologies and Systems&lt;/em> (USITS), March 2003.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Nathan Marz: “&lt;a class="link" href="http://nathanmarz.com/blog/principles-of-software-engineering-part-1.html" target="_blank" rel="noopener"
+>Principles of Software Engineering, Part 1&lt;/a>,” &lt;em>nathanmarz.com&lt;/em>, April 2, 2013.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Michael Jurewitz:“&lt;a class="link" href="http://jury.me/blog/2013/3/14/the-human-impact-of-bugs" target="_blank" rel="noopener"
+>The Human Impact of Bugs&lt;/a>,” &lt;em>jury.me&lt;/em>, March 15, 2013.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Raffi Krikorian: “&lt;a class="link" href="http://www.infoq.com/presentations/Twitter-Timeline-Scalability" target="_blank" rel="noopener"
+>Timelines at Scale&lt;/a>,” at &lt;em>QCon San Francisco&lt;/em>, November 2012.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Martin Fowler: &lt;em>Patterns of Enterprise Application Architecture&lt;/em>. Addison Wesley, 2002. ISBN: 978-0-321-12742-6&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Kelly Sommers: “&lt;a class="link" href="https://twitter.com/kellabyte/status/532930540777635840" target="_blank" rel="noopener"
+>After all that run around, what caused 500ms disk latency even when we replaced physical server?&lt;/a>” &lt;em>twitter.com&lt;/em>, November 13, 2014.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Giuseppe DeCandia, Deniz Hastorun, Madan Jampani, et al.: “&lt;a class="link" href="http://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" target="_blank" rel="noopener"
+>Dynamo: Amazon&amp;rsquo;s Highly Available Key-Value Store&lt;/a>,” at &lt;em>21st ACM Symposium on Operating Systems Principles&lt;/em> (SOSP), October 2007.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Greg Linden: “&lt;a class="link" href="http://glinden.blogspot.co.uk/2006/12/slides-from-my-talk-at-stanford.html" target="_blank" rel="noopener"
+>Make Data Useful&lt;/a>,” slides from presentation at Stanford University Data Mining class (CS345), December 2006.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Tammy Everts: “&lt;a class="link" href="http://www.webperformancetoday.com/2014/11/12/real-cost-slow-time-vs-downtime-slides/" target="_blank" rel="noopener"
+>The Real Cost of Slow Time vs Downtime&lt;/a>,” &lt;em>webperformancetoday.com&lt;/em>, November 12, 2014.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Jake Brutlag:“&lt;a class="link" href="http://googleresearch.blogspot.co.uk/2009/06/speed-matters.html" target="_blank" rel="noopener"
+>Speed Matters for Google Web Search&lt;/a>,” &lt;em>googleresearch.blogspot.co.uk&lt;/em>, June 22, 2009.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Tyler Treat: “&lt;a class="link" href="http://bravenewgeek.com/everything-you-know-about-latency-is-wrong/" target="_blank" rel="noopener"
+>Everything You Know About Latency Is Wrong&lt;/a>,” &lt;em>bravenewgeek.com&lt;/em>, December 12, 2015.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Jeffrey Dean and Luiz André Barroso: “&lt;a class="link" href="http://cacm.acm.org/magazines/2013/2/160173-the-tail-at-scale/fulltext" target="_blank" rel="noopener"
+>The Tail at Scale&lt;/a>,” &lt;em>Communications of the ACM&lt;/em>, volume 56, number 2, pages 74–80, February 2013. &lt;a class="link" href="http://dx.doi.org/10.1145/2408776.2408794" target="_blank" rel="noopener"
+>doi:10.1145/2408776.2408794&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Graham Cormode, Vladislav Shkapenyuk, Divesh Srivastava, and Bojian Xu: “&lt;a class="link" href="http://dimacs.rutgers.edu/~graham/pubs/papers/fwddecay.pdf" target="_blank" rel="noopener"
+>Forward Decay: A Practical Time Decay Model for Streaming Systems&lt;/a>,” at &lt;em>25th IEEE International Conference on Data Engineering&lt;/em> (ICDE), March 2009.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Ted Dunning and Otmar Ertl: “&lt;a class="link" href="https://github.com/tdunning/t-digest" target="_blank" rel="noopener"
+>Computing Extremely Accurate Quantiles Using t-Digests&lt;/a>,” &lt;em>github.com&lt;/em>, March 2014.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Gil Tene: “&lt;a class="link" href="http://www.hdrhistogram.org/" target="_blank" rel="noopener"
+>HdrHistogram&lt;/a>,” &lt;em>hdrhistogram.org&lt;/em>.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Baron Schwartz: “&lt;a class="link" href="https://www.vividcortex.com/blog/why-percentiles-dont-work-the-way-you-think" target="_blank" rel="noopener"
+>Why Percentiles Don’t Work the Way You Think&lt;/a>,” &lt;em>vividcortex.com&lt;/em>, December 7, 2015.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>James Hamilton: “&lt;a class="link" href="https://www.usenix.org/legacy/events/lisa07/tech/full_papers/hamilton/hamilton.pdf" target="_blank" rel="noopener"
+>On Designing and Deploying Internet-Scale Services&lt;/a>,” at &lt;em>21st Large Installation
+System Administration Conference&lt;/em> (LISA), November 2007.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Brian Foote and Joseph Yoder: “&lt;a class="link" href="http://www.laputan.org/pub/foote/mud.pdf" target="_blank" rel="noopener"
+>Big Ball of Mud&lt;/a>,” at &lt;em>4th Conference on Pattern Languages of Programs&lt;/em> (PLoP), September 1997.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Frederick P Brooks: “No Silver Bullet – Essence and Accident in Software Engineering,” in &lt;em>The Mythical Man-Month&lt;/em>, Anniversary edition, Addison-Wesley, 1995. ISBN: 978-0-201-83595-3&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Ben Moseley and Peter Marks: “&lt;a class="link" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.93.8928" target="_blank" rel="noopener"
+>Out of the Tar Pit&lt;/a>,” at &lt;em>BCS Software Practice Advancement&lt;/em> (SPA), 2006.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Rich Hickey: “&lt;a class="link" href="http://www.infoq.com/presentations/Simple-Made-Easy" target="_blank" rel="noopener"
+>Simple Made Easy&lt;/a>,” at &lt;em>Strange Loop&lt;/em>, September 2011.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Hongyu Pei Breivold, Ivica Crnkovic, and Peter J. Eriksson: “&lt;a class="link" href="http://www.mrtc.mdh.se/publications/1478.pdf" target="_blank" rel="noopener"
+>Analyzing Software Evolvability&lt;/a>,” at &lt;em>32nd Annual IEEE International Computer Software and Applications Conference&lt;/em> (COMPSAC), July 2008. &lt;a class="link" href="http://dx.doi.org/10.1109/COMPSAC.2008.50" target="_blank" rel="noopener"
+>doi:10.1109/COMPSAC.2008.50&lt;/a>&lt;/p>
+&lt;/li>
+&lt;/ol></description></item><item><title>Archives</title><link>https://blog.searchkit.tech/en/archives/</link><pubDate>Tue, 03 Dec 2024 00:00:00 +0000</pubDate><guid>https://blog.searchkit.tech/en/archives/</guid><description/></item><item><title>Links</title><link>https://blog.searchkit.tech/en/links/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://blog.searchkit.tech/en/links/</guid><description>&lt;h2 id="guidelines-for-friendship-link-exchange">Guidelines for Friendship Link Exchange
+&lt;/h2>&lt;ol>
+&lt;li>The website applying for a friendship link must have a valid ICP filing and be related to the internet industry.&lt;/li>
+&lt;li>The website&amp;rsquo;s design should be clean and elegant, with no intrusive or excessive advertisements, and its Baidu snapshot should be up-to-date.&lt;/li>
+&lt;li>The website must not contain any illegal or prohibited content.&lt;/li>
+&lt;li>Links will be regularly reviewed and removed if they no longer meet the requirements.&lt;/li>
+&lt;/ol>
+&lt;h2 id="contact-information">Contact Information
+&lt;/h2>&lt;p>WeChat: luohoufu (Please mention &amp;ldquo;friendship link&amp;rdquo; when adding)&lt;/p></description></item><item><title>Search</title><link>https://blog.searchkit.tech/en/search/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://blog.searchkit.tech/en/search/</guid><description/></item></channel></rss>
